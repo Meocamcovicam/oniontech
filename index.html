@@ -93,7 +93,6 @@
             </section>
 
             <section id="product" class="page-section">
-                <!-- Nội dung Product nguyên bản được giữ lại -->
                 <div class="vr-hero">
                     <h2 data-i18n="prod_title">TẤT CẢ SẢN PHẨM</h2>
                     <p data-i18n="prod_desc">Tìm kiếm và khám phá toàn bộ hệ sinh thái sản phẩm VR, AR và Detection của Onion Tech.</p>
@@ -155,7 +154,7 @@
                     <div class="service-item product-item ar-item">
                         <div class="ar-top-content">
                             <div class="service-text">
-                                <h3 data-i18n="ar_3_title">[AR] 3. AR 360 Portal: Cổng Không Gian 360 Độ</h3>
+                                <h3 data-i18n="ar_3_title">[AR] 3. AR 360 Portal: Cổng Không Space 360 Độ</h3>
                                 <p data-i18n="ar_3_desc"><strong>Nội dung:</strong> Tạo ra một "cánh cửa ảo" ngay trong phòng của bạn dẫn đến không gian video 360 độ.</p>
                             </div>
                             <img src="images/ar-360.png" alt="AR Portal">
@@ -210,7 +209,6 @@
             </section>
 
             <section id="vr" class="page-section">
-                <!-- Nội dung VR giữ nguyên -->
                 <div class="vr-hero"><h2 data-i18n="vr_page_title">CÔNG NGHỆ VR – ĐẮM CHÌM TRONG KHÔNG GIAN SỐ</h2></div><hr>
                 <div class="vr-features">
                     <div class="service-item"><div class="service-text"><h3 data-i18n="vr_1_title">1. VR EdTech – Giáo Dục Phổ Thông Thế Hệ Mới</h3><p data-i18n="vr_1_desc"><strong>Nội dung:</strong> Số hóa học liệu theo Chương trình Giáo dục phổ thông. Biến các bài học lịch sử, địa lý, vật lý phức tạp thành không gian tương tác 3D trực quan.</p></div><img src="images/vr-edtech.jpg" alt="VR EdTech"></div>
@@ -222,7 +220,6 @@
             </section>
 
             <section id="ar" class="page-section">
-                <!-- Nội dung AR giữ nguyên -->
                 <div class="vr-hero"><h2 data-i18n="ar_page_title">CÔNG NGHỆ AR – CHẠM CÔNG NGHỆ, MỞ TƯƠNG LAI</h2></div><hr>
                 <div class="vr-features">
                     <div class="service-item ar-item">
@@ -330,7 +327,6 @@
                 </div>
 
                 <div id="game-container" style="display: none; background: #0b0b12; border: 3px solid #00ffcc; border-radius: 8px; padding: 15px; box-shadow: 0 0 20px rgba(0, 255, 204, 0.2); position: relative;">
-                    <!-- HEADER CONTROL (Chung cho các loại Game) -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; min-height: 42px;">
                         <h3 id="game-title" style="color: #00ffcc; margin: 0; font-size: 18px;"><i class="fas fa-gamepad"></i> App Demo</h3>
                         <div id="game-status-hud" style="font-size: 17px; font-weight: bold; color: #ffeb3b; background: rgba(255,235,59,0.1); padding: 5px 15px; border-radius: 20px; border: 1px solid #ffeb3b; min-width: 120px;">Score: 0</div>
@@ -340,7 +336,6 @@
                         </div>
                     </div>
                     
-                    <!-- WRAPPER 1: CHO CANVAS GAME (SHOOTER, HOCKEY) -->
                     <div id="canvas-game-wrapper" style="position: relative; display: none; width: 100%; max-width: 800px; margin: 0 auto; overflow: hidden; border-radius: 6px;">
                         <canvas id="game-canvas" width="800" height="500" style="width: 100%; height: auto; aspect-ratio: 8/5; background: #05050a; border: 2px solid #333; display: block; margin: 0 auto; box-shadow: inset 0 0 30px rgba(0,0,0,0.8);"></canvas>
                         <div id="game-over-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:20; flex-direction:column; justify-content:center; align-items:center;">
@@ -353,22 +348,18 @@
                         </div>
                     </div>
 
-                    <!-- WRAPPER 2: CHO AI STYLIST APP -->
                     <div id="stylist-game-wrapper" style="display: none; flex-direction: column; gap: 15px; width: 100%; background: #111118; border-radius: 8px; padding: 15px; border: 1px solid #333;">
                         
                         <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: stretch; height: auto;">
-                            <!-- Camera View -->
                             <div class="stylist-cam-box">
                                 <canvas id="stylist-cam-canvas" width="200" height="180"></canvas>
                                 <div id="stylist-cam-status">Đang khởi động...</div>
                             </div>
-                            <!-- System Logs -->
                             <div id="stylist-logs-content">
                                 <div style="color: #aaa;">[System] Hệ thống AI Stylist - Sẵn sàng...</div>
                             </div>
                         </div>
 
-                        <!-- Stylist Categories Grid -->
                         <div class="stylist-grid">
                             <div class="stylist-card">
                                 <div class="stylist-card-title text-red-400"><i class="fas fa-tshirt"></i> Thời trang</div>
@@ -395,7 +386,6 @@
                         <p style="color: #00ffcc; font-size: 13px; text-align: center; margin-top: 10px; font-weight: bold;">💡 Đứng trước Camera. Hệ thống sẽ quét thông minh 15s/lần. (Bóp tay để thoát)</p>
                     </div>
 
-                    <!-- FULLSCREEN BTN -->
                     <button id="btn-fullscreen" onclick="toggleFullScreen()" title="Toàn màn hình (Hoặc nói 'Full screen')" style="position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.7); color: #fff; border: 1px solid #00ffcc; border-radius: 4px; width: 38px; height: 36px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.2s; z-index: 10;">
                         <i class="fas fa-expand"></i>
                     </button>
@@ -405,7 +395,6 @@
             </section>
 
             <section id="solution" class="page-section">
-                <!-- Nội dung Solution giữ nguyên -->
                 <div class="vr-hero">
                     <h2 data-i18n="sol_page_title">GIẢI PHÁP ĐỘT PHÁ – CHUYỂN ĐỔI SỐ TOÀN DIỆN</h2>
                     <p data-i18n="sol_page_desc" style="text-align: left; margin-top: 10px; color: #555;">Onion Tech tích hợp sâu các công nghệ VR/AR/XR và trí tuệ nhân tạo để tạo ra các gói giải pháp may đo chính xác cho từng mục tiêu chiến lược của doanh nghiệp: Từ đào tạo nhân sự, đổi mới giáo dục đến bứt phá doanh thu bằng giải trí thế hệ mới.</p>

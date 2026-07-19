@@ -921,9 +921,11 @@ function checkOpenHand(landmarks) {
     return getDist(landmarks[8], wrist) > handSize * 1.4 && getDist(landmarks[12], wrist) > handSize * 1.4;
 }
 
+// --- THAY ĐỔI Ở ĐÂY ---
 async function toggleHandTracking(forceState = null) {
     const targetState = forceState !== null ? forceState : !isHandTracking;
     const voiceLogContainer = document.getElementById("voice-log-container");
+    const cameraPreviewContainer = document.getElementById("camera-preview");
 
     if (targetState && !isHandTracking) {
         initFaceDetection().then(() => { addLogToUI("👤 Đã tải hệ thống nhận diện khuôn mặt", "log-sys"); }).catch(e => console.log(e));
@@ -938,6 +940,8 @@ async function toggleHandTracking(forceState = null) {
         }
         camera.start(); isHandTracking = true; handBtn.classList.add("listening"); 
         if (voiceLogContainer) voiceLogContainer.style.display = "none";
+        if (cameraPreviewContainer) cameraPreviewContainer.style.display = "block"; // Bật khung camera
+
         addLogToUI("🖐 Đã BẬT Camera Detection", "log-sys");
         let dict = i18nData[currentLang] || i18nData['en'];
         if(dict.handOn) updateAIAssistant(dict.handOn);
@@ -945,6 +949,7 @@ async function toggleHandTracking(forceState = null) {
         if (camera) camera.stop();
         isHandTracking = false; handBtn.classList.remove("listening"); 
         if (voiceLogContainer) voiceLogContainer.style.display = "none"; 
+        if (cameraPreviewContainer) cameraPreviewContainer.style.display = "none"; // Tắt khung camera
         virtualCursor.style.display = "none";
         isPersonPresent = false; if (!isAISpeaking) setAIAvatarState('idle');
         addLogToUI("⏸ Đã TẮT Camera Detection", "log-sys");
