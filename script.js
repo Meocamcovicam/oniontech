@@ -1188,7 +1188,7 @@ hands.onResults(onHandResults);
 // ----------------------------------------------------
 // 5. GIỌNG NÓI & AI GEMINI
 // ----------------------------------------------------
-const API_KEY = "AQ.Ab8RN6JQmZQBp-s-lE7hJiyPoY30MIMm2ktTu587jwQIyzBqig";
+const API_KEY = "AQ.Ab8RN6LQNhgNQqjQZaKhIBRFEpIx4ChFyCzzvx_asCjRbZ4Tgw";
 const voiceBtn = document.getElementById("voice-btn");
 
 const localKeywordMap = [
