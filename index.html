@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onion Tech - AI & XR Solutions</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <h1 class="logo">ONION TECH</h1>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#" onclick="navigateTo('home')" data-i18n="nav_home">Home</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropbtn" onclick="navigateTo('product')" data-i18n="nav_product">Product</a>
+                        <div class="dropdown-content">
+                            <a href="#" onclick="navigateTo('vr')">VR</a>
+                            <a href="#" onclick="navigateTo('ar')">AR</a>
+                            <a href="#" onclick="navigateTo('detection')">Detection</a>
+                        </div>
+                    </li>
+                    <li><a href="#" onclick="navigateTo('solution')" data-i18n="nav_solution">Solution</a></li>
+                    <li><a href="#" onclick="navigateTo('company')" data-i18n="nav_company">Company</a></li>
+                    <li><a href="#" onclick="navigateTo('contact')" data-i18n="nav_contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <aside class="sidebar">
+            <div class="model-box">
+                <video src="images/Loop video onion.mp4" autoplay loop muted playsinline class="sidebar-video"></video>
+            </div>
+            
+            <div class="ai-assistant-box" id="ai-assistant-box">
+                <div class="ai-title"><i class="fas fa-robot"></i> AI Assistant</div>
+                <div class="ai-status" id="ai-status-text">Sẵn sàng hỗ trợ bạn...</div>
+            </div>
+
+            <div class="voice-log-container" id="voice-log-container">
+                <div class="log-header">System Processing Log</div>
+                <div class="log-content" id="log-content">
+                    <div class="log-msg log-sys">Hệ thống sẵn sàng (Model: Gemini 2.5-Flash)...</div>
+                </div>
+            </div>
+
+            <div class="camera-preview-container" id="camera-preview">
+                <video class="input_video" style="display: none;"></video>
+                <canvas class="output_canvas" width="320" height="240"></canvas>
+                <div class="camera-hint"><i class="fas fa-hand-point-right"></i> Vuốt ngang chuyển trang</div>
+            </div>
+        </aside>
+
+        <main class="content-area">
+            
+            <section id="home" class="page-section active">
+                <div class="home-hero">
+                    <h2 data-i18n="home_title">Chạm Tương Lai – Bứt Phá Thực Tại</h2>
+                    <h3 data-i18n="home_subtitle">Giải Pháp Công Nghệ VR/AR/XR Toàn Diện Cho Doanh Nghiệp.</h3>
+                    <p data-i18n="home_desc">Onion Tech tiên phong dịch chuyển không gian số, xóa nhòa ranh giới giữa thực và ảo. Chúng tôi kiến tạo các giải pháp Mô phỏng (Simulation), Giáo dục thông minh và Giải trí thế hệ mới, giúp doanh nghiệp tối ưu hiệu suất, nâng tầm trải nghiệm.</p>
+                    <div class="slider-container">
+                        <div class="slider-wrapper">
+                            <img src="images/slide 1.jpg" alt="Slide 1">
+                            <img src="images/slide 2.jpg" alt="Slide 2">
+                            <img src="images/slide 3.jpg" alt="Slide 3">
+                            <img src="images/slide4.jpg" alt="Slide 4">
+                            <img src="images/slide5.jpg" alt="Slide 5">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="home-about">
+                    <hr>
+                    <h2 data-i18n="about_title">CHÚNG TÔI LÀ AI? (ABOUT US - MỘT CHẠM CÔNG NGHỆ)</h2>
+                    <p data-i18n="about_desc">Tại Onion Tech, chúng tôi tin rằng công nghệ XR/VR không chỉ là xu hướng, mà là chìa khóa mở ra kỷ nguyên mới cho mọi ngành nghề...</p>
+                    <div class="three-images-row">
+                        <img src="images/about 1.jpg" alt="About 1">
+                        <img src="images/about 2.jpg" alt="About 2">
+                        <img src="images/about 3.jpg" alt="About 3">
+                        <img src="images/about 4.jpg" alt="About 4">
+                    </div>
+                </div>
+            </section>
+
+            <section id="product" class="page-section">
+                <!-- Nội dung Product nguyên bản được giữ lại -->
+                <div class="vr-hero">
+                    <h2 data-i18n="prod_title">TẤT CẢ SẢN PHẨM</h2>
+                    <p data-i18n="prod_desc">Tìm kiếm và khám phá toàn bộ hệ sinh thái sản phẩm VR, AR và Detection của Onion Tech.</p>
+                </div>
+                
+                <hr>
+
+                <div class="vr-features" id="product-list">
+                    <div class="service-item product-item"><div class="service-text"><h3 data-i18n="vr_1_title">[VR] 1. VR EdTech – Giáo Dục Phổ Thông Thế Hệ Mới</h3><p data-i18n="vr_1_desc"><strong>Nội dung:</strong> Số hóa học liệu theo Chương trình Giáo dục phổ thông. Biến các bài học lịch sử, địa lý, vật lý phức tạp thành không gian tương tác 3D trực quan.</p></div><img src="images/vr-edtech.jpg" alt="VR EdTech"></div>
+                    <div class="service-item product-item"><div class="service-text"><h3 data-i18n="vr_2_title">[VR] 2. VR Simulation – Mô Phỏng Bắn Súng & Huấn Luyện Chuyên Sâu</h3><p data-i18n="vr_2_desc"><strong>Nội dung:</strong> Giải pháp mô phỏng tác chiến và sử dụng vũ khí với độ chính xác tuyệt đối về cơ chế vật lý.</p></div><img src="images/vr-simulation.jpg" alt="VR Simulation"></div>
+                    <div class="service-item product-item"><div class="service-text"><h3 data-i18n="vr_3_title">[VR] 3. VR Ocean Exploration – Khám Phá Đại Dương Huyền Bí</h3><p data-i18n="vr_3_desc"><strong>Nội dung:</strong> Chuyến du hành nhập vai xuống lòng đại dương sâu thẳm. Hệ sinh thái biển được mô phỏng sinh động.</p></div><img src="images/vr-ocean.jpg" alt="VR Ocean"></div>
+                    <div class="service-item product-item"><div class="service-text"><h3 data-i18n="vr_4_title">[VR] 4. VR Biology – Khám Phá Sinh Học & Cơ Thể Người</h3><p data-i18n="vr_4_desc"><strong>Nội dung:</strong> Bóc tách và tương tác trực quan với các hệ cơ quan, cấu trúc tế bào và giải phẫu cơ thể người.</p></div><img src="images/vr-biology.jpg" alt="VR Biology"></div>
+                    <div class="service-item product-item"><div class="service-text"><h3 data-i18n="vr_5_title">[VR] 5. VR 360 Video – Trải Nghiệm Thực Tế Toàn Cảnh</h3><p data-i18n="vr_5_desc"><strong>Nội dung:</strong> Sản xuất và phát hành nội dung video 360 độ định dạng 4K/8K siêu nét.</p></div><img src="images/vr-360.jpg" alt="VR 360"></div>
+                    
+                    <div class="service-item product-item ar-item">
+                        <div class="ar-top-content">
+                            <div class="service-text">
+                                <h3 data-i18n="ar_1_title">[AR] 1. AR Edu-Discovery: Khám Phá Thế Giới Trực Quan</h3>
+                                <p data-i18n="ar_1_desc"><strong>Nội dung:</strong> Biến sách giáo khoa và tài liệu giấy thành không gian tương tác 3D phục vụ giáo dục.</p>
+                            </div>
+                            <img src="images/ar-edu.png" alt="AR Edu">
+                        </div>
+                        <div class="qr-list">
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Undersea - Onion Image Tracking.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Đại Dương</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Spawn Tree, Cappybara, Mushroom English - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Hệ Sinh Thái</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Solar System - Slam - Real Object.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Hệ Mặt Trời</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Match 2 Same Picture Game - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Game Lật Hình</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="service-item product-item ar-item">
+                        <div class="ar-top-content">
+                            <div class="service-text">
+                                <h3 data-i18n="ar_2_title">[AR] 2. AR History: Tái Hiện Lịch Sử Sống Động</h3>
+                                <p data-i18n="ar_2_desc"><strong>Nội dung:</strong> Phục dựng các cổ vật, di tích lịch sử hoặc các trận đánh oai hùng.</p>
+                            </div>
+                            <img src="images/ar-history.png" alt="AR History">
+                        </div>
+                        <div class="qr-list">
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - KhangchienchongMy- Khang chien Image Tracking.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Kháng chiến chống Mỹ</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="service-item product-item ar-item">
+                        <div class="ar-top-content">
+                            <div class="service-text">
+                                <h3 data-i18n="ar_3_title">[AR] 3. AR 360 Portal: Cổng Không Gian 360 Độ</h3>
+                                <p data-i18n="ar_3_desc"><strong>Nội dung:</strong> Tạo ra một "cánh cửa ảo" ngay trong phòng của bạn dẫn đến không gian video 360 độ.</p>
+                            </div>
+                            <img src="images/ar-360.png" alt="AR Portal">
+                        </div>
+                        <div class="qr-list">
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - onion-video360.png" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Onion Video 360</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Undersea - Slam Tracking.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Đại dương 360</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Onion Gaming Club Location in VN - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Onion Gaming Club</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="service-item product-item ar-item">
+                        <div class="ar-top-content">
+                            <div class="service-text">
+                                <h3 data-i18n="ar_4_title">[AR] 4. AR Gaming: Game Thực Tế Tăng Cường Tương Tác</h3>
+                                <p data-i18n="ar_4_desc"><strong>Nội dung:</strong> Biến sàn nhà, mặt bàn hoặc cả khu phố của bạn thành chiến trường game rực rỡ.</p>
+                            </div>
+                            <img src="images/ar-gaming.png" alt="AR Gaming">
+                        </div>
+                        <div class="qr-list">
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Car Jump Game - Dino Jump - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Car Jump Dino</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Tetris Game - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Tetris Game</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Car Racing Game - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Car Racing</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - BrickBreaker Game - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">BrickBreaker</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="service-item product-item clickable-game-card" onclick="startGame('stylist')"><div class="service-text"><h3 data-i18n="det_1_title">[Detection] 1. Face Recognition & Product Recommendation</h3><p data-i18n="det_1_desc"><strong>Nội dung:</strong> Tự động nhận diện độ tuổi, giới tính và biểu cảm khuôn mặt của khách hàng. <span style="color: #d94545; font-weight: bold;">(Click hoặc Nói "stylist", "nhận diện" để thử)</span></p></div><img src="images/detect-face.png" alt="Face Recognition"></div>
+                    <div class="service-item product-item clickable-game-card" onclick="startGame('shooter')"><div class="service-text"><h3 data-i18n="det_2_title">[Detection] 2. Camera Body Tracking: Game 1 - Bắn Ruồi Không Chạm</h3><p data-i18n="det_2_desc"><strong>Nội dung:</strong> Bắt trọn chuyển động cơ thể, cử chỉ tay để tương tác không chạm. <span style="color: #d94545; font-weight: bold;">(Click hoặc Nói "space shooter", "bắn ruồi" để chơi)</span></p></div><img src="images/detect-body-spaceshooter.png" alt="Body Tracking"></div>
+                    <div class="service-item product-item clickable-game-card" onclick="startGame('hockey')"><div class="service-text"><h3 data-i18n="det_3_title">[Detection] 3. Camera Body Tracking: Game 2 - Khúc Côn Cầu Air Hockey</h3><p data-i18n="det_3_desc"><strong>Nội dung:</strong> Trận chiến 2 người chơi thực tế tăng cường. <span style="color: #00ffcc; font-weight: bold;">(Click hoặc Nói "air hockey" để chơi)</span></p></div><img src="images/detecthand-airhockey.png" alt="Air Hockey"></div>
+                </div>
+            </section>
+
+            <section id="vr" class="page-section">
+                <!-- Nội dung VR giữ nguyên -->
+                <div class="vr-hero"><h2 data-i18n="vr_page_title">CÔNG NGHỆ VR – ĐẮM CHÌM TRONG KHÔNG GIAN SỐ</h2></div><hr>
+                <div class="vr-features">
+                    <div class="service-item"><div class="service-text"><h3 data-i18n="vr_1_title">1. VR EdTech – Giáo Dục Phổ Thông Thế Hệ Mới</h3><p data-i18n="vr_1_desc"><strong>Nội dung:</strong> Số hóa học liệu theo Chương trình Giáo dục phổ thông. Biến các bài học lịch sử, địa lý, vật lý phức tạp thành không gian tương tác 3D trực quan.</p></div><img src="images/vr-edtech.jpg" alt="VR EdTech"></div>
+                    <div class="service-item"><div class="service-text"><h3 data-i18n="vr_2_title">2. VR Simulation – Mô Phỏng Bắn Súng & Huấn Luyện Chuyên Sâu</h3><p data-i18n="vr_2_desc"><strong>Nội dung:</strong> Giải pháp mô phỏng tác chiến và sử dụng vũ khí với độ chính xác tuyệt đối về cơ chế vật lý.</p></div><img src="images/vr-simulation.jpg" alt="VR Simulation"></div>
+                    <div class="service-item"><div class="service-text"><h3 data-i18n="vr_3_title">3. VR Ocean Exploration – Khám Phá Đại Dương Huyền Bí</h3><p data-i18n="vr_3_desc"><strong>Nội dung:</strong> Chuyến du hành nhập vai xuống lòng đại dương sâu thẳm. Hệ sinh thái biển được mô phỏng sinh động.</p></div><img src="images/vr-ocean.jpg" alt="VR Ocean"></div>
+                    <div class="service-item"><div class="service-text"><h3 data-i18n="vr_4_title">4. VR Biology – Khám Phá Sinh Học & Cơ Thể Người</h3><p data-i18n="vr_4_desc"><strong>Nội dung:</strong> Bóc tách và tương tác trực quan với các hệ cơ quan, cấu trúc tế bào và giải phẫu cơ thể người.</p></div><img src="images/vr-biology.jpg" alt="VR Biology"></div>
+                    <div class="service-item"><div class="service-text"><h3 data-i18n="vr_5_title">5. VR 360 Video – Trải Nghiệm Thực Tế Toàn Cảnh</h3><p data-i18n="vr_5_desc"><strong>Nội dung:</strong> Sản xuất và phát hành nội dung video 360 độ định dạng 4K/8K siêu nét.</p></div><img src="images/vr-360.jpg" alt="VR 360"></div>
+                </div>
+            </section>
+
+            <section id="ar" class="page-section">
+                <!-- Nội dung AR giữ nguyên -->
+                <div class="vr-hero"><h2 data-i18n="ar_page_title">CÔNG NGHỆ AR – CHẠM CÔNG NGHỆ, MỞ TƯƠNG LAI</h2></div><hr>
+                <div class="vr-features">
+                    <div class="service-item ar-item">
+                        <div class="ar-top-content">
+                            <div class="service-text">
+                                <h3 data-i18n="ar_1_title">1. AR Edu-Discovery: Khám Phá Thế Giới Trực Quan</h3>
+                                <p data-i18n="ar_1_desc"><strong>Nội dung:</strong> Biến sách giáo khoa và tài liệu giấy thành không gian tương tác 3D phục vụ giáo dục.</p>
+                            </div>
+                            <img src="images/ar-edu.png" alt="AR Edu">
+                        </div>
+                        <div class="qr-list">
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Undersea - Onion Image Tracking.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Đại Dương</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Spawn Tree, Cappybara, Mushroom English - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Hệ Sinh Thái</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Solar System - Slam - Real Object.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Hệ Mặt Trời</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Match 2 Same Picture Game - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Game Lật Hình</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="service-item ar-item">
+                        <div class="ar-top-content">
+                            <div class="service-text">
+                                <h3 data-i18n="ar_2_title">2. AR History: Tái Hiện Lịch Sử Sống Động</h3>
+                                <p data-i18n="ar_2_desc"><strong>Nội dung:</strong> Phục dựng các cổ vật, di tích lịch sử hoặc các trận đánh oai hùng dưới dạng 3D quy mô lớn.</p>
+                            </div>
+                            <img src="images/ar-history.png" alt="AR History">
+                        </div>
+                        <div class="qr-list">
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - KhangchienchongMy- Khang chien Image Tracking.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Kháng chiến chống Mỹ</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="service-item ar-item">
+                        <div class="ar-top-content">
+                            <div class="service-text">
+                                <h3 data-i18n="ar_3_title">3. AR 360 Portal: Cổng Không Gian 360 Độ</h3>
+                                <p data-i18n="ar_3_desc"><strong>Nội dung:</strong> Tạo ra một "cánh cửa ảo" ngay trong phòng của bạn dẫn đến không gian video 360 độ.</p>
+                            </div>
+                            <img src="images/ar-360.png" alt="AR Portal">
+                        </div>
+                        <div class="qr-list">
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - onion-video360.png" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Onion Video 360</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Undersea - Slam Tracking.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Đại dương 360</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Onion Gaming Club Location in VN - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Onion Gaming Club</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="service-item ar-item">
+                        <div class="ar-top-content">
+                            <div class="service-text">
+                                <h3 data-i18n="ar_4_title">4. AR Gaming: Game Thực Tế Tăng Cường Tương Tác</h3>
+                                <p data-i18n="ar_4_desc"><strong>Nội dung:</strong> Biến sàn nhà, mặt bàn hoặc cả khu phố của bạn thành chiến trường game rực rỡ.</p>
+                            </div>
+                            <img src="images/ar-gaming.png" alt="AR Gaming">
+                        </div>
+                        <div class="qr-list">
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Car Jump Game - Dino Jump - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Car Jump Dino</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Tetris Game - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Tetris Game</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - Car Racing Game - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">Car Racing</span>
+                            </div>
+                            <div class="qr-box">
+                                <img src="images/QR collection/AR - BrickBreaker Game - Slam.jpg" alt="QR Code" class="qr-img">
+                                <span class="qr-desc">BrickBreaker</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="detection" class="page-section">
+                <div class="vr-hero"><h2 data-i18n="det_page_title">CAMERA DETECTION – NHẬN DIỆN THÔNG MINH</h2></div><hr>
+                
+                <div id="detection-normal-list" class="vr-features">
+                    <div class="service-item clickable-game-card" onclick="startGame('stylist')"><div class="service-text"><h3 data-i18n="det_1_title">1. Face Recognition & Product Recommendation</h3><p data-i18n="det_1_desc"><strong>Nội dung:</strong> Tự động nhận diện độ tuổi, giới tính và biểu cảm khuôn mặt của khách hàng. <span style="color: #d94545; font-weight: bold;">(Click hoặc Nói "stylist", "nhận diện" để thử)</span></p></div><img src="images/detect-face.png" alt="Face Recognition"></div>
+                    <div class="service-item clickable-game-card" onclick="startGame('shooter')"><div class="service-text"><h3 data-i18n="det_2_title">2. Camera Body Tracking: Game 1 - Bắn Ruồi Không Chạm</h3><p data-i18n="det_2_desc"><strong>Nội dung:</strong> Bắt trọn chuyển động cơ thể, cử chỉ tay để tương tác không chạm. <span style="color: #d94545; font-weight: bold;">(Click hoặc Nói "space shooter", "bắn ruồi" để chơi)</span></p></div><img src="images/detect-body-spaceshooter.png" alt="Body Tracking"></div>
+                    <div class="service-item clickable-game-card" onclick="startGame('hockey')"><div class="service-text"><h3 data-i18n="det_3_title">3. Camera Body Tracking: Game 2 - Khúc Côn Cầu Air Hockey</h3><p data-i18n="det_3_desc"><strong>Nội dung:</strong> Trận chiến 2 người chơi thực tế tăng cường. <span style="color: #00ffcc; font-weight: bold;">(Click hoặc Nói "air hockey" để chơi)</span></p></div><img src="images/detecthand-airhockey.png" alt="Air Hockey"></div>
+                </div>
+
+                <div id="game-container" style="display: none; background: #0b0b12; border: 3px solid #00ffcc; border-radius: 8px; padding: 15px; box-shadow: 0 0 20px rgba(0, 255, 204, 0.2); position: relative;">
+                    <!-- HEADER CONTROL (Chung cho các loại Game) -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; min-height: 42px;">
+                        <h3 id="game-title" style="color: #00ffcc; margin: 0; font-size: 18px;"><i class="fas fa-gamepad"></i> App Demo</h3>
+                        <div id="game-status-hud" style="font-size: 17px; font-weight: bold; color: #ffeb3b; background: rgba(255,235,59,0.1); padding: 5px 15px; border-radius: 20px; border: 1px solid #ffeb3b; min-width: 120px;">Score: 0</div>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="resetCurrentGame()" class="game-btn" style="background: #ff9800; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s;"><i class="fas fa-redo"></i> Reset</button>
+                            <button onclick="stopGame()" class="game-btn" style="background: #ff1744; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s;"><i class="fas fa-times"></i> Thoát</button>
+                        </div>
+                    </div>
+                    
+                    <!-- WRAPPER 1: CHO CANVAS GAME (SHOOTER, HOCKEY) -->
+                    <div id="canvas-game-wrapper" style="position: relative; display: none; width: 100%; max-width: 800px; margin: 0 auto; overflow: hidden; border-radius: 6px;">
+                        <canvas id="game-canvas" width="800" height="500" style="width: 100%; height: auto; aspect-ratio: 8/5; background: #05050a; border: 2px solid #333; display: block; margin: 0 auto; box-shadow: inset 0 0 30px rgba(0,0,0,0.8);"></canvas>
+                        <div id="game-over-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:20; flex-direction:column; justify-content:center; align-items:center;">
+                            <h2 id="game-over-title" style="color:#ff1744; font-size:38px; margin-bottom:10px; text-shadow: 0 0 10px red;">GAME OVER</h2>
+                            <p id="game-over-desc" style="color:#00ffcc; font-size:18px; margin-bottom:25px;">Sử dụng tay bóp vào nút dưới đây để thao tác!</p>
+                            <div style="display:flex; gap:20px;">
+                                <button onclick="resetCurrentGame()" class="go-btn" style="padding:12px 25px; font-size:18px; font-weight:bold; background:#ff9800; color:#fff; border:2px solid #fff; border-radius:8px; cursor:pointer;"><i class="fas fa-redo"></i> Chơi Lại</button>
+                                <button onclick="stopGame()" class="go-btn" style="padding:12px 25px; font-size:18px; font-weight:bold; background:#ff1744; color:#fff; border:2px solid #fff; border-radius:8px; cursor:pointer;"><i class="fas fa-times"></i> Thoát Game</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WRAPPER 2: CHO AI STYLIST APP -->
+                    <div id="stylist-game-wrapper" style="display: none; flex-direction: column; gap: 15px; width: 100%; background: #111118; border-radius: 8px; padding: 15px; border: 1px solid #333;">
+                        
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: stretch; height: auto;">
+                            <!-- Camera View -->
+                            <div class="stylist-cam-box">
+                                <canvas id="stylist-cam-canvas" width="200" height="180"></canvas>
+                                <div id="stylist-cam-status">Đang khởi động...</div>
+                            </div>
+                            <!-- System Logs -->
+                            <div id="stylist-logs-content">
+                                <div style="color: #aaa;">[System] Hệ thống AI Stylist - Sẵn sàng...</div>
+                            </div>
+                        </div>
+
+                        <!-- Stylist Categories Grid -->
+                        <div class="stylist-grid">
+                            <div class="stylist-card">
+                                <div class="stylist-card-title text-red-400"><i class="fas fa-tshirt"></i> Thời trang</div>
+                                <div id="stylist-list-fashion" class="stylist-card-list"><div class="stylist-empty">---</div></div>
+                            </div>
+                            <div class="stylist-card">
+                                <div class="stylist-card-title text-blue-400"><i class="fas fa-gem"></i> Đồng hồ & Trang sức</div>
+                                <div id="stylist-list-jewelry" class="stylist-card-list"><div class="stylist-empty">---</div></div>
+                            </div>
+                            <div class="stylist-card">
+                                <div class="stylist-card-title text-green-400"><i class="fas fa-shoe-prints"></i> Giày dép</div>
+                                <div id="stylist-list-shoes" class="stylist-card-list"><div class="stylist-empty">---</div></div>
+                            </div>
+                            <div class="stylist-card">
+                                <div class="stylist-card-title text-pink-400"><i class="fas fa-spray-can"></i> Nước hoa</div>
+                                <div id="stylist-list-perfume" class="stylist-card-list"><div class="stylist-empty">---</div></div>
+                            </div>
+                            <div class="stylist-card">
+                                <div class="stylist-card-title text-yellow-400"><i class="fas fa-coffee"></i> F&B</div>
+                                <div id="stylist-list-fnb" class="stylist-card-list"><div class="stylist-empty">---</div></div>
+                            </div>
+                        </div>
+                        
+                        <p style="color: #00ffcc; font-size: 13px; text-align: center; margin-top: 10px; font-weight: bold;">💡 Đứng trước Camera. Hệ thống sẽ quét thông minh 15s/lần. (Bóp tay để thoát)</p>
+                    </div>
+
+                    <!-- FULLSCREEN BTN -->
+                    <button id="btn-fullscreen" onclick="toggleFullScreen()" title="Toàn màn hình (Hoặc nói 'Full screen')" style="position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.7); color: #fff; border: 1px solid #00ffcc; border-radius: 4px; width: 38px; height: 36px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.2s; z-index: 10;">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    
+                    <p id="game-hint-text" style="color: #00ffcc; font-size: 14px; margin-top: 10px; font-weight: bold; text-align: center;">💡 Đưa tay lên trước camera để điều khiển! Nắm tay lại (Bóp tay) để Thoát Game!</p>
+                </div>
+            </section>
+
+            <section id="solution" class="page-section">
+                <!-- Nội dung Solution giữ nguyên -->
+                <div class="vr-hero">
+                    <h2 data-i18n="sol_page_title">GIẢI PHÁP ĐỘT PHÁ – CHUYỂN ĐỔI SỐ TOÀN DIỆN</h2>
+                    <p data-i18n="sol_page_desc" style="text-align: left; margin-top: 10px; color: #555;">Onion Tech tích hợp sâu các công nghệ VR/AR/XR và trí tuệ nhân tạo để tạo ra các gói giải pháp may đo chính xác cho từng mục tiêu chiến lược của doanh nghiệp: Từ đào tạo nhân sự, đổi mới giáo dục đến bứt phá doanh thu bằng giải trí thế hệ mới.</p>
+                </div>
+                <hr>
+                <div class="vr-features">
+                    <div class="service-item solution-item">
+                        <div class="service-text">
+                            <h3 data-i18n="sol_1_title">1. XR Simulation: Giải Pháp Mô Phỏng & Đào Tạo Công Nghiệp Cao</h3>
+                            <p data-i18n="sol_1_desc"><strong>Nội dung:</strong> Tái hiện hoàn chỉnh môi trường nhà máy, công trường, hoặc các quy trình kỹ thuật phức tạp bằng bản sao kỹ thuật số (Digital Twin) trên nền tảng VR/XR. Cho phép nhân sự thực hành thao tác bảo trì, vận hành máy móc nặng hoặc diễn tập cứu hộ trong môi trường giả lập an toàn tuyệt đối, giúp giảm 50% thời gian đào tạo và triệt tiêu rủi ro tai nạn lao động.</p>
+                            <p data-i18n="sol_1_app" style="margin-top: 10px; color: #0066cc;"><strong>Ứng dụng doanh nghiệp:</strong> Mô phỏng vận hành dây chuyền sản xuất, diễn tập an toàn lao động (PCCC, rò rỉ hóa chất), VR Walkthrough kiến trúc/xây dựng độ chính xác cao.</p>
+                        </div>
+                        <img src="images/solution-simulation.png" alt="XR Simulation">
+                    </div>
+                    <div class="service-item solution-item">
+                        <div class="service-text">
+                            <h3 data-i18n="sol_2_title">2. XR Education: Giải Pháp Giáo Dục Tương Tác Trực Quan</h3>
+                            <p data-i18n="sol_2_desc"><strong>Nội dung:</strong> Phá vỡ giới hạn của trường lớp truyền thống bằng giải pháp lớp học thông minh (EdTech XR). Kết hợp giữa AR (quét tài liệu hiển thị mô hình) và VR (nhập vai vào không gian ảo) để đưa học sinh du hành vào thế giới vi mô của tế bào sinh học, hay ngược dòng thời gian về các thời kỳ lịch sử. Giải pháp tăng tối đa sự hào hứng, giúp học sinh ghi nhớ sâu thông qua trải nghiệm thực tế thay vì học vẹt.</p>
+                            <p data-i18n="sol_2_app" style="margin-top: 10px; color: #0066cc;"><strong>Ứng dụng doanh nghiệp:</strong> Số hóa học liệu cho các trường học, trung tâm đào tạo, sản xuất ứng dụng bóc tách sinh học/giải phẫu, bảo tàng số tương tác.</p>
+                        </div>
+                        <img src="images/solution-education.png" alt="XR Education">
+                    </div>
+                    <div class="service-item solution-item">
+                        <div class="service-text">
+                            <h3 data-i18n="sol_3_title">3. VR/AR/XR Gaming & Gamification: Giải Pháp Giải Trí & Tiếp Thị Trải Nghiệm</h3>
+                            <p data-i18n="sol_3_desc"><strong>Nội dung:</strong> Ứng dụng tư duy thiết kế game (Game Design) và công nghệ XR để tạo ra những trải nghiệm bùng nổ cảm xúc. Từ những tựa game VR nhập vai sâu sắc trên Steam/Mobile cho đến các chiến dịch Marketing Gamification (chơi game nhận quà qua AR Filter/Body Tracking). Đây là giải pháp tối ưu để các thương hiệu thu hút hàng triệu tương tác, tạo dấu ấn sâu đậm trong tâm trí khách hàng mục tiêu.</p>
+                            <p data-i18n="sol_3_app" style="margin-top: 10px; color: #0066cc;"><strong>Ứng dụng doanh nghiệp:</strong> Sản xuất game VR/AR độc quyền, Booth chơi game tương tác tại sự kiện (Brand Activation), mini-game AR trên thiết bị di động thu hút tệp khách hàng trẻ và hiện đại.</p>
+                        </div>
+                        <img src="images/solution-gaming.png" alt="XR Gaming">
+                    </div>
+                </div>
+            </section>
+
+            <section id="company" class="page-section">
+                <div class="vr-hero"><h2 data-i18n="comp_title">VỀ CÔNG TY ONION</h2></div><hr>
+                <p data-i18n="comp_desc">Onion được thành lập với sứ mệnh mang tới các giải pháp công nghệ tương tác đỉnh cao. Chúng tôi sở hữu đội ngũ kỹ sư giàu kinh nghiệm trong lĩnh vực đồ họa 3D, trí tuệ nhân tạo (AI) và thực tế ảo (VR/AR).</p>
+                <img src="images/company info.jpg" alt="Company Image" class="section-full-img">
+            </section>
+
+            <section id="contact" class="page-section">
+                <div class="vr-hero"><h2 data-i18n="cont_title">LIÊN HỆ VỚI CHÚNG TÔI</h2></div><hr>
+                <p><strong data-i18n="cont_email_label">Email:</strong> contact@oniontech.vn | <strong data-i18n="cont_hotline_label">Hotline:</strong> 0987.654.321</p>
+                <p><strong data-i18n="cont_address_label">Địa chỉ:</strong> Tòa nhà Công nghệ cao, Hà Nội, Việt Nam.</p>
+                <img src="images/contact.webp" alt="Contact Image" class="section-full-img">
+            </section>
+
+        </main>
+    </div>
+
+    <button id="hand-btn" class="hand-btn" title="Điều khiển bằng cử chỉ">
+        <i class="fas fa-hand-paper"></i>
+    </button>
+    <button id="voice-btn" class="voice-btn" title="Điều khiển bằng giọng nói">
+        <i class="fas fa-microphone"></i>
+    </button>
+
+    <i id="virtual-cursor" class="fas fa-mouse-pointer"></i>
+
+    <script src="script.js"></script>
+</body>
+</html>
