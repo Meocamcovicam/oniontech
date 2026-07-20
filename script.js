@@ -35,7 +35,7 @@ function protectBrandName() {
 }
 
 // ----------------------------------------------------
-// [HỆ THỐNG DỊCH TỰ ĐỘNG] TIÊM GOOGLE TRANSLATE ELEMENT & ẨN KHUNG BANNER TẬN GỐC
+// [HỆ THỐNG DỊCH TỰ ĐỘNG] TIÊM GOOGLE TRANSLATE ELEMENT
 // ----------------------------------------------------
 function injectGoogleTranslate() {
     if (!document.getElementById('google_translate_element')) {
@@ -86,9 +86,6 @@ function injectGoogleTranslate() {
     }
 }
 
-// ----------------------------------------------------
-// 1. TỪ ĐIỂN ĐA NGÔN NGỮ & TÊN TRANG THÂN THIỆN
-// ----------------------------------------------------
 const logContent = document.getElementById("log-content");
 const aiStatusText = document.getElementById("ai-status-text");
 
@@ -379,16 +376,21 @@ function toggleFullScreen(forceExit = false) {
 }
 
 // ----------------------------------------------------
-// 3. HỆ THỐNG GAME DEMO & BIẾN COOLDOWN
+// 3. HỆ THỐNG GAME DEMO & RESPONSIVE CANVAS
 // ----------------------------------------------------
 let isGaming = false;
 let activeGameType = 'shooter'; 
 let gameLoopId = null;
 let isGameOver = false;
 
+// Kích thước màn hình Game tự động thay đổi
+let GAME_WIDTH = 800;
+let GAME_HEIGHT = 500;
+let isPortraitScreen = false;
+
 const SMOOTH_FACTOR = 0.25; 
-let targetShips = [ { x: 350, y: 440 }, { x: 450, y: 440 } ]; 
-let targetPaddles = [ { x: 150, y: 250 }, { x: 650, y: 250 } ]; 
+let targetShips = []; 
+let targetPaddles = []; 
 let smoothCursor = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
 let shooterScore = 0; let shooterGameStarted = false; 
@@ -398,7 +400,6 @@ let shooterSlots = [
 ];
 let bullets = []; let enemies = []; let enemyBullets = []; let frameCount = 0;
 let stars = [];
-for (let i = 0; i < 60; i++) { stars.push({ x: Math.random() * 800, y: Math.random() * 500, size: Math.random() * 2 + 1, speed: Math.random() * 1.5 + 0.5 }); }
 
 let hockeyPuck = { x: 400, y: 250, vx: 0, vy: 0, radius: 16 };
 let hockeyScore = { blue: 0, red: 0 };
@@ -406,6 +407,28 @@ let hockeyPaddles = [
     { x: 150, y: 250, vx: 0, vy: 0, radius: 32, color: '#00ffff', innerColor: '#0088aa' },
     { x: 650, y: 250, vx: 0, vy: 0, radius: 32, color: '#ff1744', innerColor: '#aa0022' }
 ];
+
+function initGameBounds() {
+    isPortraitScreen = window.innerHeight > window.innerWidth;
+    if (isPortraitScreen) {
+        GAME_WIDTH = 500; GAME_HEIGHT = 800; // Xoay dọc luật chơi
+    } else {
+        GAME_WIDTH = 800; GAME_HEIGHT = 500; // Giữ ngang chuẩn PC
+    }
+
+    const canvas = document.getElementById('game-canvas');
+    if (canvas) {
+        canvas.width = GAME_WIDTH;
+        canvas.height = GAME_HEIGHT;
+    }
+
+    targetShips = [ { x: GAME_WIDTH * 0.4, y: GAME_HEIGHT - 60 }, { x: GAME_WIDTH * 0.6, y: GAME_HEIGHT - 60 } ];
+    if (isPortraitScreen) {
+        targetPaddles = [ { x: GAME_WIDTH / 2, y: GAME_HEIGHT - 100 }, { x: GAME_WIDTH / 2, y: 100 } ];
+    } else {
+        targetPaddles = [ { x: 150, y: 250 }, { x: GAME_WIDTH - 150, y: 250 } ];
+    }
+}
 
 function startGame(type) {
     if (type === 'random' || !type) type = Math.random() > 0.5 ? 'shooter' : 'hockey';
@@ -415,7 +438,6 @@ function startGame(type) {
     document.getElementById('detection-normal-list').style.display = 'none';
     document.getElementById('game-container').style.display = 'block';
     
-    // Reset wrapper displays
     document.getElementById('canvas-game-wrapper').style.display = 'none';
     document.getElementById('stylist-game-wrapper').style.display = 'none';
     document.getElementById('game-status-hud').style.display = 'none';
@@ -423,6 +445,7 @@ function startGame(type) {
 
     isGaming = true; isGameOver = false;
     toggleHandTracking(true);
+    initGameBounds();
     
     if (type === 'stylist') {
         document.getElementById('stylist-game-wrapper').style.display = 'flex';
@@ -439,8 +462,8 @@ function startGame(type) {
             shooterScore = 0; shooterGameStarted = false;
             shooterSlots[0].hp = 10; shooterSlots[0].hasJoined = false; shooterSlots[0].isDead = false; shooterSlots[0].isTracking = false;
             shooterSlots[1].hp = 10; shooterSlots[1].hasJoined = false; shooterSlots[1].isDead = false; shooterSlots[1].isTracking = false;
-            targetShips = [ { x: 350, y: 440 }, { x: 450, y: 440 } ];
             bullets = []; enemies = []; enemyBullets = []; frameCount = 0;
+            stars = []; for (let i = 0; i < 60; i++) { stars.push({ x: Math.random() * GAME_WIDTH, y: Math.random() * GAME_HEIGHT, size: Math.random() * 2 + 1, speed: Math.random() * 1.5 + 0.5 }); }
             document.getElementById('game-status-hud').innerText = `Score: 0`;
             addLogToUI("🎮 Đã mở Game 1: Space Shooter", "log-success");
         } else if (type === 'hockey') {
@@ -458,9 +481,7 @@ function startGame(type) {
 
     setTimeout(() => {
         const gameContainer = document.getElementById('game-container');
-        if (gameContainer) {
-            gameContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        if (gameContainer) gameContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 300);
 }
 
@@ -468,7 +489,7 @@ function stopGame() {
     if (!isGaming) return;
     isGaming = false; isGameOver = false;
     
-    stopStylist(); // Cleanup for AI Stylist
+    stopStylist();
     
     if (gameLoopId) cancelAnimationFrame(gameLoopId);
     toggleFullScreen(true); 
@@ -479,16 +500,11 @@ function stopGame() {
     let dict = i18nData[currentLang] || i18nData['en'];
     if (dict.game_stop) updateAIAssistant(dict.game_stop);
     
-    // Đảm bảo luồng điều hướng quay về Detection (Nếu đang ở trang khác)
     navigateTo('detection', '', false);
-
     setTimeout(() => {
         const detSection = document.getElementById('detection');
-        if (detSection) {
-            detSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        if (detSection) detSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 300);
 }
 
@@ -496,27 +512,26 @@ function resetCurrentGame() {
     if (!isGaming) return;
     isGameOver = false;
     document.getElementById('game-over-overlay').style.display = 'none';
+    initGameBounds();
     
     if (activeGameType === 'stylist') {
-        resetStylist(); // Reset lại toàn bộ đếm và giao diện Stylist
+        resetStylist(); 
         addLogToUI("🔄 Đã khởi động lại AI Stylist", "log-success");
     } else if (activeGameType === 'shooter') {
         shooterScore = 0; shooterGameStarted = false;
         shooterSlots[0].hp = 10; shooterSlots[0].isDead = false; shooterSlots[0].hasJoined = false; shooterSlots[0].isTracking = false;
         shooterSlots[1].hp = 10; shooterSlots[1].isDead = false; shooterSlots[1].hasJoined = false; shooterSlots[1].isTracking = false;
-        targetShips = [ { x: 350, y: 440 }, { x: 450, y: 440 } ];
         bullets = []; enemies = []; enemyBullets = []; frameCount = 0;
         document.getElementById('game-status-hud').innerText = `Score: 0`;
         addLogToUI("🔄 Đã chơi lại Game Bắn Ruồi", "log-success");
     } else if (activeGameType === 'hockey') {
         hockeyScore = { blue: 0, red: 0 }; resetHockeyPuck();
-        targetPaddles = [ { x: 150, y: 250 }, { x: 650, y: 250 } ];
         document.getElementById('game-status-hud').innerText = `Score: 0`;
         addLogToUI("🔄 Đã chơi lại Game Khúc Côn Cầu", "log-success");
     }
 }
 
-function resetHockeyPuck() { hockeyPuck = { x: 400, y: 250, vx: 0, vy: 0, radius: 16 }; }
+function resetHockeyPuck() { hockeyPuck = { x: GAME_WIDTH / 2, y: GAME_HEIGHT / 2, vx: 0, vy: 0, radius: 16 }; }
 
 function gameLoop() {
     if (!isGaming) return;
@@ -526,17 +541,14 @@ function gameLoop() {
             const ctx = canvas.getContext('2d');
             if (activeGameType === 'shooter') renderShooterGame(ctx);
             else if (activeGameType === 'hockey') renderHockeyGame(ctx);
-            
-            if (isGameOver) {
-                document.getElementById('game-over-overlay').style.display = 'flex';
-            }
+            if (isGameOver) document.getElementById('game-over-overlay').style.display = 'flex';
         }
     }
     gameLoopId = requestAnimationFrame(gameLoop);
 }
 
 function renderShooterGame(ctx) {
-    ctx.fillStyle = '#05050a'; ctx.fillRect(0, 0, 800, 500);
+    ctx.fillStyle = '#05050a'; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     let joinedShips = shooterSlots.filter(s => s.hasJoined);
     let trackingShips = shooterSlots.filter(s => s.isTracking && !s.isDead);
     if (trackingShips.length > 0) shooterGameStarted = true;
@@ -545,13 +557,16 @@ function renderShooterGame(ctx) {
     ctx.fillStyle = '#ffffff';
     stars.forEach(s => { 
         ctx.fillRect(s.x, s.y, s.size, s.size); 
-        if (!isGameOver && !isPaused) { s.y += s.speed; if (s.y > 500) s.y = 0; } 
+        if (!isGameOver && !isPaused) { 
+            s.y += s.speed; 
+            if (s.y > GAME_HEIGHT) { s.y = 0; s.x = Math.random() * GAME_WIDTH; } 
+        } 
     });
 
     if (!isPaused && !isGameOver) {
         frameCount++;
         if (frameCount % 45 === 0 && enemies.length < 10) {
-            enemies.push({ x: Math.random() * 700 + 50, y: -30, vx: (Math.random() - 0.5) * 4, vy: Math.random() * 1.5 + 1.5, pattern: Math.floor(Math.random() * 3), timer: 0 });
+            enemies.push({ x: Math.random() * (GAME_WIDTH - 100) + 50, y: -30, vx: (Math.random() - 0.5) * 4, vy: Math.random() * 1.5 + 1.5, pattern: Math.floor(Math.random() * 3), timer: 0 });
         }
         if (frameCount % 12 === 0) {
             trackingShips.forEach(p => { bullets.push({ x: p.x, y: p.y - 20 }); });
@@ -562,7 +577,7 @@ function renderShooterGame(ctx) {
         for (let i = enemies.length - 1; i >= 0; i--) {
             let e = enemies[i]; e.timer++;
             if (e.pattern === 0) { e.x += e.vx; e.y += e.vy; } else if (e.pattern === 1) { e.y += e.vy; e.x += Math.sin(e.timer * 0.08) * 5; } else { e.x += e.vx * 1.5; e.y += e.vy * 1.2; }
-            if (e.x < 20 || e.x > 780) e.vx *= -1;
+            if (e.x < 20 || e.x > GAME_WIDTH - 20) e.vx *= -1;
             if (Math.random() < 0.02) enemyBullets.push({ x: e.x, y: e.y + 20, vx: (Math.random() - 0.5) * 3, vy: 5 });
 
             let hitEnemy = false;
@@ -573,7 +588,7 @@ function renderShooterGame(ctx) {
                 let p = trackingShips[j];
                 if (Math.hypot(e.x - p.x, e.y - p.y) < 30) { p.hp -= 1; if (p.hp <= 0) { p.isDead = true; } hitEnemy = true; break; }
             }
-            if (hitEnemy) enemies.splice(i, 1); else if (e.y > 530) enemies.splice(i, 1);
+            if (hitEnemy) enemies.splice(i, 1); else if (e.y > GAME_HEIGHT + 30) enemies.splice(i, 1);
         }
 
         for (let i = enemyBullets.length - 1; i >= 0; i--) {
@@ -583,7 +598,7 @@ function renderShooterGame(ctx) {
                 let p = trackingShips[j];
                 if (Math.hypot(eb.x - p.x, eb.y - p.y) < 25) { p.hp -= 1; if (p.hp <= 0) { p.isDead = true; } hitPlayer = true; break; }
             }
-            if (hitPlayer) enemyBullets.splice(i, 1); else if (eb.y > 520) enemyBullets.splice(i, 1);
+            if (hitPlayer) enemyBullets.splice(i, 1); else if (eb.y > GAME_HEIGHT + 20) enemyBullets.splice(i, 1);
         }
     }
 
@@ -608,24 +623,44 @@ function renderShooterGame(ctx) {
     ctx.shadowBlur = 0;
 
     if (isPaused) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.fillRect(0, 0, 800, 500);
-        ctx.fillStyle = '#ffeb3b'; ctx.font = 'bold 36px "Segoe UI", Arial, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('PAUSED', 400, 240);
-        ctx.fillStyle = '#ffffff'; ctx.font = '20px "Segoe UI", Arial, sans-serif'; ctx.fillText('Đưa tay vào Camera để tiếp tục', 400, 280); ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        ctx.fillStyle = '#ffeb3b'; ctx.font = 'bold 36px "Segoe UI", Arial, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('PAUSED', GAME_WIDTH / 2, GAME_HEIGHT / 2);
+        ctx.fillStyle = '#ffffff'; ctx.font = '20px "Segoe UI", Arial, sans-serif'; ctx.fillText('Đưa tay vào Camera để tiếp tục', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40); ctx.textAlign = 'left';
     }
 }
 
 function renderHockeyGame(ctx) {
-    ctx.fillStyle = '#0b132b'; ctx.fillRect(0, 0, 800, 500);
+    ctx.fillStyle = '#0b132b'; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     ctx.strokeStyle = '#3a506b'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 500); ctx.stroke();
-    ctx.beginPath(); ctx.arc(400, 250, 60, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); 
+    if (isPortraitScreen) {
+        ctx.moveTo(0, GAME_HEIGHT / 2); ctx.lineTo(GAME_WIDTH, GAME_HEIGHT / 2);
+        ctx.arc(GAME_WIDTH / 2, GAME_HEIGHT / 2, 60, 0, Math.PI * 2);
+    } else {
+        ctx.moveTo(GAME_WIDTH / 2, 0); ctx.lineTo(GAME_WIDTH / 2, GAME_HEIGHT);
+        ctx.arc(GAME_WIDTH / 2, GAME_HEIGHT / 2, 60, 0, Math.PI * 2);
+    }
+    ctx.stroke();
 
     if (isGameOver) return;
 
     ctx.fillStyle = '#00ffff'; ctx.shadowBlur = 10; ctx.shadowColor = '#00ffff';
-    ctx.fillRect(0, 160, 20, 10); ctx.fillRect(0, 330, 20, 10); ctx.fillRect(0, 170, 8, 160);
+    if (isPortraitScreen) {
+        ctx.fillRect(GAME_WIDTH/2 - 80, 0, 160, 20);
+        ctx.fillRect(GAME_WIDTH/2 - 80, 15, 160, 8);
+    } else {
+        ctx.fillRect(0, GAME_HEIGHT/2 - 80, 20, 160); 
+        ctx.fillRect(0, GAME_HEIGHT/2 - 70, 8, 140);
+    }
+
     ctx.fillStyle = '#ff1744'; ctx.shadowColor = '#ff1744';
-    ctx.fillRect(780, 160, 20, 10); ctx.fillRect(780, 330, 20, 10); ctx.fillRect(792, 170, 8, 160);
+    if (isPortraitScreen) {
+        ctx.fillRect(GAME_WIDTH/2 - 80, GAME_HEIGHT - 20, 160, 20);
+        ctx.fillRect(GAME_WIDTH/2 - 80, GAME_HEIGHT - 23, 160, 8);
+    } else {
+        ctx.fillRect(GAME_WIDTH - 20, GAME_HEIGHT/2 - 80, 20, 160); 
+        ctx.fillRect(GAME_WIDTH - 8, GAME_HEIGHT/2 - 70, 8, 140);
+    }
     ctx.shadowBlur = 0;
 
     hockeyPaddles.forEach(pad => { pad.vx *= 0.8; pad.vy *= 0.8; });
@@ -633,16 +668,27 @@ function renderHockeyGame(ctx) {
     hockeyPuck.vx *= 0.985; hockeyPuck.vy *= 0.985;
     if (Math.abs(hockeyPuck.vx) < 0.15) hockeyPuck.vx = 0; if (Math.abs(hockeyPuck.vy) < 0.15) hockeyPuck.vy = 0;
 
-    if (hockeyPuck.y - hockeyPuck.radius < 0 || hockeyPuck.y + hockeyPuck.radius > 500) {
-        hockeyPuck.vy *= -1; hockeyPuck.y = Math.max(hockeyPuck.radius, Math.min(500 - hockeyPuck.radius, hockeyPuck.y));
+    // Boundary Bounces (Tuỳ biến cho Dọc / Ngang)
+    if (hockeyPuck.y - hockeyPuck.radius < 0) {
+        if (isPortraitScreen && hockeyPuck.x > GAME_WIDTH/2 - 80 && hockeyPuck.x < GAME_WIDTH/2 + 80) {
+            hockeyScore.red += 1; checkHockeyWinner(); resetHockeyPuck();
+        } else { hockeyPuck.vy *= -1; hockeyPuck.y = hockeyPuck.radius; }
     }
+    if (hockeyPuck.y + hockeyPuck.radius > GAME_HEIGHT) {
+        if (isPortraitScreen && hockeyPuck.x > GAME_WIDTH/2 - 80 && hockeyPuck.x < GAME_WIDTH/2 + 80) {
+            hockeyScore.blue += 1; checkHockeyWinner(); resetHockeyPuck();
+        } else { hockeyPuck.vy *= -1; hockeyPuck.y = GAME_HEIGHT - hockeyPuck.radius; }
+    }
+
     if (hockeyPuck.x - hockeyPuck.radius < 0) {
-        if (hockeyPuck.y > 170 && hockeyPuck.y < 330) { hockeyScore.red += 1; checkHockeyWinner(); resetHockeyPuck(); }
-        else { hockeyPuck.vx *= -1; hockeyPuck.x = hockeyPuck.radius; }
+        if (!isPortraitScreen && hockeyPuck.y > GAME_HEIGHT/2 - 80 && hockeyPuck.y < GAME_HEIGHT/2 + 80) {
+            hockeyScore.red += 1; checkHockeyWinner(); resetHockeyPuck();
+        } else { hockeyPuck.vx *= -1; hockeyPuck.x = hockeyPuck.radius; }
     }
-    if (hockeyPuck.x + hockeyPuck.radius > 800) {
-        if (hockeyPuck.y > 170 && hockeyPuck.y < 330) { hockeyScore.blue += 1; checkHockeyWinner(); resetHockeyPuck(); }
-        else { hockeyPuck.vx *= -1; hockeyPuck.x = 800 - hockeyPuck.radius; }
+    if (hockeyPuck.x + hockeyPuck.radius > GAME_WIDTH) {
+        if (!isPortraitScreen && hockeyPuck.y > GAME_HEIGHT/2 - 80 && hockeyPuck.y < GAME_HEIGHT/2 + 80) {
+            hockeyScore.blue += 1; checkHockeyWinner(); resetHockeyPuck();
+        } else { hockeyPuck.vx *= -1; hockeyPuck.x = GAME_WIDTH - hockeyPuck.radius; }
     }
 
     hockeyPaddles.forEach(pad => {
@@ -686,18 +732,17 @@ let stylistIntervalId = null;
 let stylistRenderId = null;
 let lastStylistPixels = null;
 let isStylistProcessing = false;
-let stylistUsageCount = 0; // Biến giới hạn 4 lần sử dụng (Reset khi mở)
+let stylistUsageCount = 0; 
 
 function initStylist() {
     resetStylist();
-    stylistUsageCount = 0; // Reset khi khởi động
+    stylistUsageCount = 0; 
     stylistLog(`Hệ thống AI Stylist - Sẵn sàng (Chu kỳ 20s) [0/4]`, "sys");
     
     const camCanvas = document.getElementById('stylist-cam-canvas');
     const camCtx = camCanvas.getContext('2d');
     const videoEl = document.getElementsByClassName('input_video')[0];
 
-    // Vẽ Video feed qua canvas cho Stylist UI
     function renderCam() {
         if (activeGameType === 'stylist' && isGaming) {
             camCtx.save();
@@ -712,9 +757,7 @@ function initStylist() {
     }
     renderCam();
 
-    // Chu kỳ 20s gọi LLM
     stylistIntervalId = setInterval(processStylistFrame, 20000);
-    // Nâng delay quét lần đầu lên 5s
     setTimeout(processStylistFrame, 5000);
 }
 
@@ -727,7 +770,7 @@ function stopStylist() {
 
 function resetStylist() {
     stopStylist();
-    stylistUsageCount = 0; // Reset khi user bấm Reset
+    stylistUsageCount = 0; 
     document.getElementById('stylist-logs-content').innerHTML = '<div style="color: #aaa;">[System] Hệ thống AI Stylist - Sẵn sàng...</div>';
     document.getElementById('stylist-cam-status').innerText = "Đang chờ...";
     
@@ -760,7 +803,6 @@ async function processStylistFrame() {
     
     isStylistProcessing = true;
     
-    // Pixel Diff Logic (32x32 cho tối ưu)
     const diffCanvas = document.createElement('canvas');
     diffCanvas.width = 32; diffCanvas.height = 32;
     const diffCtx = diffCanvas.getContext('2d');
@@ -775,13 +817,11 @@ async function processStylistFrame() {
             let newLuma = 0.299 * currentPixels[i] + 0.587 * currentPixels[i+1] + 0.114 * currentPixels[i+2];
             if (Math.abs(oldLuma - newLuma) > 40) diffCount++;
         }
-        // Ngưỡng 15% để quyết định người không đổi / đổi quá ít
         if ((diffCount / 1024) * 100 < 15) isDiff = false; 
     }
 
     if (!isDiff) {
         stylistLog("Khách không đổi vị trí/dáng. Bỏ qua để tiết kiệm API.", "warn");
-        // Khách cũ -> Giữ nguyên kết quả và KHÔNG tăng bộ đếm 4 lần
         document.getElementById('stylist-cam-status').innerText = `Đã quét (Giữ Data) [${stylistUsageCount}/4]`;
         isStylistProcessing = false;
         return;
@@ -791,7 +831,6 @@ async function processStylistFrame() {
     stylistLog("Chuyển động mới / Khách mới. Đang gọi API...", "sys");
     document.getElementById('stylist-cam-status').innerText = `Đang phân tích... [${stylistUsageCount}/4]`;
 
-    // Capture Base64
     const captureCanvas = document.createElement('canvas');
     captureCanvas.width = 320; captureCanvas.height = 240;
     captureCanvas.getContext('2d').drawImage(videoEl, 0, 0, 320, 240);
@@ -818,24 +857,20 @@ Nếu không có người, trả về các mảng rỗng.`;
             generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
         };
 
-        // Yêu cầu bắt buộc sử dụng gemini-3.1-flash-lite-preview, fallback gemini-2.5-flash nếu chết API
         let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${API_KEY_FACE}`, {
             method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
         });
-        
         if (!response.ok) {
             response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY_FACE}`, {
                 method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
             });
         }
-        
         if (!response.ok) throw new Error("API Fallback failed");
         
         const data = await response.json();
         const textJSON = data.candidates[0].content.parts[0].text;
         const parsed = JSON.parse(textJSON.replace(/```json/gi, '').replace(/```/g, '').trim());
         
-        // Cập nhật thành công -> Tính thêm 1 lượt sử dụng
         stylistUsageCount++;
 
         const totalItems = Object.values(parsed).reduce((a, b) => a + (b ? b.length : 0), 0);
@@ -848,14 +883,11 @@ Nếu không có người, trả về các mảng rỗng.`;
             updateStylistDOM(parsed);
         }
 
-        // Tự động tắt App nếu đạt giới hạn
         if (stylistUsageCount >= 4) {
             stylistLog("✅ Đã đạt giới hạn 4 lần sử dụng. Đóng ứng dụng sau 5 giây...", "warn");
             document.getElementById('stylist-cam-status').innerText = `Hoàn tất [4/4] (Đang đóng...)`;
             setTimeout(() => {
-                if (activeGameType === 'stylist' && isGaming) {
-                    stopGame();
-                }
+                if (activeGameType === 'stylist' && isGaming) stopGame();
             }, 5000);
         }
 
@@ -946,9 +978,7 @@ async function toggleHandTracking(forceState = null) {
         initFaceDetection().then(() => { addLogToUI("👤 Đã tải hệ thống nhận diện khuôn mặt", "log-sys"); }).catch(e => console.log(e));
 
         if (!camera) {
-            // [CẬP NHẬT] - Kích hoạt Camera Trước ưu tiên trên Mobile
             const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            
             camera = new Camera(videoElement, {
                 onFrame: async () => { 
                     if (hands) await hands.send({image: videoElement}); 
@@ -956,12 +986,12 @@ async function toggleHandTracking(forceState = null) {
                 }, 
                 width: 320, 
                 height: 240,
-                facingMode: isMobileDevice ? 'user' : undefined // Ép dùng Camera trước
+                facingMode: isMobileDevice ? 'user' : undefined 
             });
         }
         camera.start(); isHandTracking = true; handBtn.classList.add("listening"); 
         if (voiceLogContainer) voiceLogContainer.style.display = "none";
-        if (cameraPreviewContainer) cameraPreviewContainer.style.display = "block"; // Bật khung camera
+        if (cameraPreviewContainer) cameraPreviewContainer.style.display = "block"; 
 
         addLogToUI("🖐 Đã BẬT Camera Detection (Phía trước)", "log-sys");
         let dict = i18nData[currentLang] || i18nData['en'];
@@ -970,7 +1000,7 @@ async function toggleHandTracking(forceState = null) {
         if (camera) camera.stop();
         isHandTracking = false; handBtn.classList.remove("listening"); 
         if (voiceLogContainer) voiceLogContainer.style.display = "none"; 
-        if (cameraPreviewContainer) cameraPreviewContainer.style.display = "none"; // Tắt khung camera
+        if (cameraPreviewContainer) cameraPreviewContainer.style.display = "none"; 
         virtualCursor.style.display = "none";
         isPersonPresent = false; if (!isAISpeaking) setAIAvatarState('idle');
         addLogToUI("⏸ Đã TẮT Camera Detection", "log-sys");
@@ -978,8 +1008,9 @@ async function toggleHandTracking(forceState = null) {
 }
 handBtn.addEventListener("click", () => toggleHandTracking());
 
-function updatePaddlePosition(index, px, py, minX, maxX) {
-    let targetX = Math.max(minX, Math.min(maxX, px)); let targetY = Math.max(32, Math.min(468, py));
+function updatePaddlePosition(index, px, py, minX, maxX, minY, maxY) {
+    let targetX = Math.max(minX, Math.min(maxX, px)); 
+    let targetY = Math.max(minY, Math.min(maxY, py));
     if (Math.hypot(targetX - targetPaddles[index].x, targetY - targetPaddles[index].y) > 2.5) {
         hockeyPaddles[index].vx = targetX - targetPaddles[index].x; hockeyPaddles[index].vy = targetY - targetPaddles[index].y;
         targetPaddles[index].x = targetX; targetPaddles[index].y = targetY; hockeyPaddles[index].x = targetX; hockeyPaddles[index].y = targetY;
@@ -1008,38 +1039,35 @@ function onHandResults(results) {
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-    // [CẬP NHẬT] - Logic Xử Lý Hình Ảnh Nằm Ngang & Đổi Trục Hand Control (Portrait Override)
-    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const isLandscapeFeed = videoElement.videoWidth > videoElement.videoHeight;
-    const forcePortrait = isMobileDevice && isLandscapeFeed; // Nếu máy đang xuất ngang trên thiết bị di động
+    // [AUTO-ROTATE CAMERA LOGIC]
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const isLandscapeVideo = videoElement.videoWidth > videoElement.videoHeight;
+    const shouldRotateCamera = isPortrait && isLandscapeVideo;
 
-    // Áp dụng CSS để xoay trực tiếp ô Canvas nhỏ hiển thị tay 
-    if (forcePortrait) {
-        // Xoay 90 độ và scale vừa khung
+    // CSS Xoay và Scale Canvas Nhỏ để hiển thị ngang màn hình thành dọc
+    if (shouldRotateCamera) {
         canvasElement.style.transform = "rotate(90deg) scale(1.35)";
     } else {
-        canvasElement.style.transform = "none";
+        canvasElement.style.transform = "scaleX(-1)"; // Mirror chuẩn PC
     }
 
     let activeHands = [];
     if (results.multiHandLandmarks) {
         for (let i = 0; i < results.multiHandLandmarks.length; i++) {
-            let lm = results.multiHandLandmarks[i][9]; // Lấy base ngón giữa làm mốc
-            let rawX = lm.x;
-            let rawY = lm.y;
+            let lm = results.multiHandLandmarks[i][9]; 
             
             let adjustedX, adjustedY;
-            if (forcePortrait) {
+            if (shouldRotateCamera) {
                 // Đảo ngược trục X và Y toán học để người dùng vuốt dọc tay vẫn nhận dọc Web
-                adjustedX = rawY; 
-                adjustedY = rawX; 
+                adjustedX = lm.y; 
+                adjustedY = lm.x; 
             } else {
-                adjustedX = 1 - rawX; // Chuẩn Mirror mặc định
-                adjustedY = rawY;
+                adjustedX = 1 - lm.x; // Mirror logic
+                adjustedY = lm.y;
             }
 
             activeHands.push({
-                x: adjustedX * 800, y: adjustedY * 500,
+                x: adjustedX * GAME_WIDTH, y: adjustedY * GAME_HEIGHT,
                 cx: adjustedX * window.innerWidth, cy: adjustedY * window.innerHeight,
                 landmarks: results.multiHandLandmarks[i]
             });
@@ -1050,10 +1078,8 @@ function onHandResults(results) {
 
     if (activeHands.length > 0) {
         updatePresence(); 
-        
         const now = Date.now();
         const canAct = (now - lastGlobalActionTime) > GLOBAL_COOLDOWN; 
-
         const hideVirtualCursor = isGaming && !isGameOver && (activeGameType === 'shooter' || activeGameType === 'hockey');
 
         if (hideVirtualCursor) {
@@ -1098,22 +1124,36 @@ function onHandResults(results) {
                 }
 
                 function assignHandToShip(hand, slotIdx) {
-                    if (!shooterSlots[slotIdx].hasJoined) { targetShips[slotIdx].x = hand.x; targetShips[slotIdx].y = hand.y; shooterSlots[slotIdx].x = Math.max(25, Math.min(775, hand.x)); shooterSlots[slotIdx].y = Math.max(30, Math.min(470, hand.y)); }
-                    if (Math.hypot(hand.x - targetShips[slotIdx].x, hand.y - targetShips[slotIdx].y) > 2.5) { targetShips[slotIdx].x = hand.x; targetShips[slotIdx].y = hand.y; shooterSlots[slotIdx].x = Math.max(25, Math.min(775, hand.x)); shooterSlots[slotIdx].y = Math.max(30, Math.min(470, hand.y)); }
+                    if (!shooterSlots[slotIdx].hasJoined) { targetShips[slotIdx].x = hand.x; targetShips[slotIdx].y = hand.y; shooterSlots[slotIdx].x = Math.max(25, Math.min(GAME_WIDTH - 25, hand.x)); shooterSlots[slotIdx].y = Math.max(30, Math.min(GAME_HEIGHT - 30, hand.y)); }
+                    if (Math.hypot(hand.x - targetShips[slotIdx].x, hand.y - targetShips[slotIdx].y) > 2.5) { targetShips[slotIdx].x = hand.x; targetShips[slotIdx].y = hand.y; shooterSlots[slotIdx].x = Math.max(25, Math.min(GAME_WIDTH - 25, hand.x)); shooterSlots[slotIdx].y = Math.max(30, Math.min(GAME_HEIGHT - 30, hand.y)); }
                     shooterSlots[slotIdx].hasJoined = true; shooterSlots[slotIdx].isTracking = true;
                     drawConnectors(canvasCtx, hand.landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2}); drawLandmarks(canvasCtx, hand.landmarks, {color: '#FF0000', lineWidth: 1});
                 }
             } else if (activeGameType === 'hockey') {
                 let leftHand = null; let rightHand = null;
                 activeHands.forEach(hand => {
-                    if (hand.x < 400) {
-                        if (!leftHand) leftHand = hand; else { let dCurrent = Math.hypot(leftHand.x - targetPaddles[0].x, leftHand.y - targetPaddles[0].y); let dNew = Math.hypot(hand.x - targetPaddles[0].x, hand.y - targetPaddles[0].y); if (dNew < dCurrent) leftHand = hand; }
-                    } else {
-                        if (!rightHand) rightHand = hand; else { let dCurrent = Math.hypot(rightHand.x - targetPaddles[1].x, rightHand.y - targetPaddles[1].y); let dNew = Math.hypot(hand.x - targetPaddles[1].x, hand.y - targetPaddles[1].y); if (dNew < dCurrent) rightHand = hand; }
+                    if (!isPortraitScreen) {
+                        if (hand.x < GAME_WIDTH / 2) {
+                            if (!leftHand) leftHand = hand; else { let dCurrent = Math.hypot(leftHand.x - targetPaddles[0].x, leftHand.y - targetPaddles[0].y); let dNew = Math.hypot(hand.x - targetPaddles[0].x, hand.y - targetPaddles[0].y); if (dNew < dCurrent) leftHand = hand; }
+                        } else {
+                            if (!rightHand) rightHand = hand; else { let dCurrent = Math.hypot(rightHand.x - targetPaddles[1].x, rightHand.y - targetPaddles[1].y); let dNew = Math.hypot(hand.x - targetPaddles[1].x, hand.y - targetPaddles[1].y); if (dNew < dCurrent) rightHand = hand; }
+                        }
+                    } else { // Portrait Rules
+                        if (hand.y > GAME_HEIGHT / 2) {
+                            if (!leftHand) leftHand = hand; else { let dCurrent = Math.hypot(leftHand.x - targetPaddles[0].x, leftHand.y - targetPaddles[0].y); let dNew = Math.hypot(hand.x - targetPaddles[0].x, hand.y - targetPaddles[0].y); if (dNew < dCurrent) leftHand = hand; }
+                        } else {
+                            if (!rightHand) rightHand = hand; else { let dCurrent = Math.hypot(rightHand.x - targetPaddles[1].x, rightHand.y - targetPaddles[1].y); let dNew = Math.hypot(hand.x - targetPaddles[1].x, hand.y - targetPaddles[1].y); if (dNew < dCurrent) rightHand = hand; }
+                        }
                     }
                 });
-                if (leftHand) { updatePaddlePosition(0, leftHand.x, leftHand.y, 32, 390); drawConnectors(canvasCtx, leftHand.landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2}); drawLandmarks(canvasCtx, leftHand.landmarks, {color: '#FF0000', lineWidth: 1}); }
-                if (rightHand) { updatePaddlePosition(1, rightHand.x, rightHand.y, 410, 768); drawConnectors(canvasCtx, rightHand.landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2}); drawLandmarks(canvasCtx, rightHand.landmarks, {color: '#FF0000', lineWidth: 1}); }
+                
+                if (!isPortraitScreen) {
+                    if (leftHand) { updatePaddlePosition(0, leftHand.x, leftHand.y, 32, GAME_WIDTH/2 - 32, 32, GAME_HEIGHT - 32); drawConnectors(canvasCtx, leftHand.landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2}); }
+                    if (rightHand) { updatePaddlePosition(1, rightHand.x, rightHand.y, GAME_WIDTH/2 + 32, GAME_WIDTH - 32, 32, GAME_HEIGHT - 32); drawConnectors(canvasCtx, rightHand.landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2}); }
+                } else {
+                    if (leftHand) { updatePaddlePosition(0, leftHand.x, leftHand.y, 32, GAME_WIDTH - 32, GAME_HEIGHT/2 + 32, GAME_HEIGHT - 32); drawConnectors(canvasCtx, leftHand.landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2}); }
+                    if (rightHand) { updatePaddlePosition(1, rightHand.x, rightHand.y, 32, GAME_WIDTH - 32, 32, GAME_HEIGHT/2 - 32); drawConnectors(canvasCtx, rightHand.landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2}); }
+                }
             }
             canvasCtx.restore(); return; 
         }
@@ -1184,19 +1224,16 @@ function onHandResults(results) {
 
         wasHandClosed = isClickGesture; 
         const wrist = landmarks[0]; 
-        // Lấy Path dựa trên trục gốc vì draw Connectors sẽ vẽ trên màn thẳng
         handPath.push({ x: wrist.x, y: wrist.y }); if (handPath.length > 15) handPath.shift();
 
         drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 3}); drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
 
         if (handPath.length >= 10 && !isGameOver && canAct) {
-            // Check Path ngang/dọc
             const rawDx = handPath[handPath.length - 1].x - handPath[0].x; 
             const rawDy = handPath[handPath.length - 1].y - handPath[0].y; 
             
-            // Re-map Dx Dy nếu máy xoay ngang
-            let dx = forcePortrait ? -rawDy : -rawDx; // -rawDx vì mặc định đã mirror
-            let dy = forcePortrait ? rawDx : rawDy;
+            let dx = shouldRotateCamera ? -rawDy : -rawDx; 
+            let dy = shouldRotateCamera ? rawDx : rawDy;
 
             if (isOpenHand && Math.abs(dx) > 0.15 && Math.abs(dx) > Math.abs(dy) * 1.5) { 
                 movePage(dx > 0.15 ? -1 : 1); 
