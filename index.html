@@ -73,8 +73,8 @@
                             <img src="images/slide 1.jpg" alt="Slide 1">
                             <img src="images/slide 2.jpg" alt="Slide 2">
                             <img src="images/slide 3.jpg" alt="Slide 3">
-                             <img src="images/slide4.jpg" alt="Slide 4">
-							  <img src="images/slide5.jpg" alt="Slide 5">
+                            <img src="images/slide4.jpg" alt="Slide 4">
+                            <img src="images/slide5.jpg" alt="Slide 5">
                         </div>
                     </div>
                 </div>
@@ -338,10 +338,10 @@
                     
                     <div id="canvas-game-wrapper" style="position: relative; display: none; width: 100%; max-width: 800px; margin: 0 auto; overflow: hidden; border-radius: 6px;">
                         <canvas id="game-canvas" width="800" height="500" style="width: 100%; height: auto; aspect-ratio: 8/5; background: #05050a; border: 2px solid #333; display: block; margin: 0 auto; box-shadow: inset 0 0 30px rgba(0,0,0,0.8);"></canvas>
-                        <div id="game-over-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:20; flex-direction:column; justify-content:center; align-items:center;">
+                        <div id="game-over-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:20; flex-direction:column; justify-content:center; align-items:center; text-align: center; padding: 20px;">
                             <h2 id="game-over-title" style="color:#ff1744; font-size:38px; margin-bottom:10px; text-shadow: 0 0 10px red;">GAME OVER</h2>
                             <p id="game-over-desc" style="color:#00ffcc; font-size:18px; margin-bottom:25px;">Sử dụng tay bóp vào nút dưới đây để thao tác!</p>
-                            <div style="display:flex; gap:20px;">
+                            <div style="display:flex; gap:20px; flex-wrap: wrap; justify-content: center;">
                                 <button onclick="resetCurrentGame()" class="go-btn" style="padding:12px 25px; font-size:18px; font-weight:bold; background:#ff9800; color:#fff; border:2px solid #fff; border-radius:8px; cursor:pointer;"><i class="fas fa-redo"></i> Chơi Lại</button>
                                 <button onclick="stopGame()" class="go-btn" style="padding:12px 25px; font-size:18px; font-weight:bold; background:#ff1744; color:#fff; border:2px solid #fff; border-radius:8px; cursor:pointer;"><i class="fas fa-times"></i> Thoát Game</button>
                             </div>

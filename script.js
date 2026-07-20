@@ -456,7 +456,6 @@ function startGame(type) {
     if (gameLoopId) cancelAnimationFrame(gameLoopId);
     gameLoop();
 
-    // === TÍNH NĂNG MỚI: TỰ ĐỘNG KÉO XUỐNG GIỮA MÀN HÌNH ===
     setTimeout(() => {
         const gameContainer = document.getElementById('game-container');
         if (gameContainer) {
@@ -480,7 +479,6 @@ function stopGame() {
     let dict = i18nData[currentLang] || i18nData['en'];
     if (dict.game_stop) updateAIAssistant(dict.game_stop);
 
-    // === TÍNH NĂNG MỚI: TỰ ĐỘNG KÉO LÊN ĐẦU TRANG ===
     setTimeout(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 300);
