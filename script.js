@@ -1281,7 +1281,7 @@ hands.onResults(onHandResults);
 // ----------------------------------------------------
 // 5. GIỌNG NÓI & AI GEMINI (TÍCH HỢP MUSIC & ĐỘ ƯU TIÊN)
 // ----------------------------------------------------
-const API_KEY_VOICE = atob("QVEuQWI4Uk42SXZuYXFJUHl3YTdiRERjTjNOYWU0emFHTEQxaUpoS1NDblMyYmk4ZXo5alE=");
+const API_KEY_VOICE = atob("QUl6YVN5QkpsZ05zNE93WFRKTkN5YVlBUk5faUpaQ2EzYktjb0NN");
 const API_KEY_FACE = atob("QVEuQWI4Uk42SjBjNGR4bENJV29iTHZ2SWlzbTFYVFdjbWlBeGFHU3VyWnFpZE5Za3JSQ0E=");
 
 const voiceBtn = document.getElementById("voice-btn");
