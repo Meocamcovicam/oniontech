@@ -202,7 +202,7 @@ async function initFaceDetection() {
                     if (snap !== 0 && Date.now() - lastRotationTime > 3000) {
                         videoRotationAngle = (videoRotationAngle - snap + 360) % 360;
                         lastRotationTime = Date.now();
-                        addLogToUI(`🔄 AI: Đã tự động cân bằng khung hình để người dùng đứng thẳng.`, "log-sys");
+                        addLogToUI(`🔄 AI: Đã tự động cân bằng khung hình.`, "log-sys");
                     }
                 }
             }
@@ -737,7 +737,7 @@ function checkHockeyWinner() {
 }
 
 // ----------------------------------------------------
-// 3.5. HỆ THỐNG AI STYLIST (CAMERA DETECTION)
+// 3.5. HỆ THỐNG AI STYLIST (CAMERA DETECTION) - GIỮ NGUYÊN
 // ----------------------------------------------------
 let stylistIntervalId = null;
 let stylistRenderId = null;
@@ -1059,13 +1059,10 @@ function onHandResults(results) {
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     
-    // [CẬP NHẬT] Lật gương (Mirror Flip) để sửa lỗi ngược góc nhìn
     canvasCtx.translate(canvasElement.width, 0);
     canvasCtx.scale(-1, 1);
     
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-    // Vô hiệu hóa CSS quay của phiên bản cũ để tránh đè lớp lật
     canvasElement.style.transform = "none";
 
     let activeHands = [];
@@ -1241,7 +1238,7 @@ function onHandResults(results) {
                 movePage(dx > 0.15 ? -1 : 1); 
                 lastGlobalActionTime = now; 
                 handPath = []; 
-                canvasCtx.restore(); // BẢN VÁ: Gọi restore trước khi thoát hàm sớm
+                canvasCtx.restore(); 
                 return; 
             }
             
@@ -1252,7 +1249,7 @@ function onHandResults(results) {
                 window.scrollBy({top: dy < 0 ? -dynamicScroll : dynamicScroll, behavior: 'smooth'}); 
                 lastGlobalActionTime = now; 
                 handPath = []; 
-                canvasCtx.restore(); // BẢN VÁ: Gọi restore trước khi thoát hàm sớm
+                canvasCtx.restore(); 
                 return;
             }
         }
@@ -1267,39 +1264,40 @@ hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0
 hands.onResults(onHandResults);
 
 // ----------------------------------------------------
-// 5. GIỌNG NÓI & AI GEMINI
+// 5. GIỌNG NÓI & AI GEMINI - CẬP NHẬT CHẶN CẤP LOCAL ĐỂ TIẾT KIỆM TOKEN
 // ----------------------------------------------------
 const API_KEY_VOICE = atob("QVEuQWI4Uk42S251V093djg3UjN0TUo5QmVHNFBUYWlHZ0J1c2xuUlZkeHVOUmtHVVR2NVE=");
 const API_KEY_FACE = atob("QVEuQWI4Uk42SjBjNGR4bENJV29iTHZ2SWlzbTFYVFdjbWlBeGFHU3VyWnFpZE5Za3JSQ0E=");
 
 const voiceBtn = document.getElementById("voice-btn");
 
+// Đã mở rộng thêm các từ khóa để đảm bảo KHÔNG gọi Gemini khi người dùng muốn thao tác trên web
 const localKeywordMap = [
-    { keywords: ["face detection", "nhận diện khuôn mặt", "nhận diện", "ai stylist", "trợ lý thời trang", "人脸检测", "顔認識", "얼굴 인식", "détection de visage", "detección de rostros", "gesichtserkennung"], action: "start_game", game: "stylist" },
-    { keywords: ["chơi game space shooter", "chơi space shooter", "space shooter", "bắn ruồi", "bắn súng không gian", "play space shooter", "玩太空射击", "スペースシューター", "우주 슈팅", "jouer au tireur de l'espace", "espacio shooter"], action: "start_game", game: "shooter" },
-    { keywords: ["chơi game air hockey", "chơi air hockey", "air hockey", "khúc côn cầu", "play air hockey", "玩空气曲棍球", "エアホッケー", "에어 하키", "jouer au air hockey", "hockey de aire"], action: "start_game", game: "hockey" },
-    { keywords: ["chơi game", "play a game"], action: "start_game", game: "random" },
+    { keywords: ["face detection", "nhận diện khuôn mặt", "nhận diện", "ai stylist", "trợ lý thời trang", "mở camera", "mở nhận diện"], action: "start_game", game: "stylist" },
+    { keywords: ["chơi game space shooter", "chơi space shooter", "space shooter", "bắn ruồi", "bắn súng không gian", "play space shooter"], action: "start_game", game: "shooter" },
+    { keywords: ["chơi game air hockey", "chơi air hockey", "air hockey", "khúc côn cầu", "play air hockey"], action: "start_game", game: "hockey" },
+    { keywords: ["chơi game", "play a game", "mở game"], action: "start_game", game: "random" },
     { keywords: ["full screen", "toàn màn hình", "fullscreen", "phóng to"], action: "fullscreen" },
-    { keywords: ["thoát", "exit", "close", "quit", "quitter", "salir", "schließen", "退出", "終了", "종료"], action: "exit_action" },
-    { keywords: ["reset game", "chơi lại", "restart"], action: "reset_game" },
-    { keywords: ["dịch sang tiếng anh", "translate to english", "tiếng anh"], action: "translate_lang", targetLang: "en" },
-    { keywords: ["dịch sang tiếng việt", "translate to vietnamese", "tiếng việt"], action: "translate_lang", targetLang: "vi" },
+    { keywords: ["thoát", "exit", "close", "quit", "quitter", "salir", "schließen", "đóng"], action: "exit_action" },
+    { keywords: ["reset game", "chơi lại", "restart", "làm lại"], action: "reset_game" },
+    { keywords: ["dịch sang tiếng anh", "translate to english", "tiếng anh", "chuyển sang tiếng anh"], action: "translate_lang", targetLang: "en" },
+    { keywords: ["dịch sang tiếng việt", "translate to vietnamese", "tiếng việt", "chuyển sang tiếng việt"], action: "translate_lang", targetLang: "vi" },
     { keywords: ["dịch sang tiếng trung", "tiếng trung", "trung quốc"], action: "translate_lang", targetLang: "zh" },
     { keywords: ["dịch sang tiếng hàn", "tiếng hàn", "hàn quốc"], action: "translate_lang", targetLang: "ko" },
     { keywords: ["dịch sang tiếng nhật", "tiếng nhật", "nhật bản"], action: "translate_lang", targetLang: "ja" },
     { keywords: ["dịch sang tiếng pháp", "tiếng pháp"], action: "translate_lang", targetLang: "fr" },
-    { keywords: ["bật điều khiển tay", "bật chế độ tay", "bật cử chỉ tay", "turn on hand control"], action: "hand_on" },
-    { keywords: ["tắt điều khiển tay", "tắt chế độ tay", "tắt cử chỉ tay", "turn off hand control"], action: "hand_off" },
-    { keywords: ["sang phải", "tiếp theo"], action: "move_right" },
-    { keywords: ["sang trái", "lùi lại"], action: "move_left" },
-    { keywords: ["trang chủ", "home"], action: "navigate", page: "home" },
-    { keywords: ["sản phẩm", "product"], action: "navigate", page: "product" },
-    { keywords: ["vr", "thực tế ảo"], action: "navigate", page: "vr" },
-    { keywords: ["ar", "thực tế tăng cường"], action: "navigate", page: "ar" },
+    { keywords: ["bật điều khiển tay", "bật chế độ tay", "bật cử chỉ tay", "turn on hand control", "bật tay"], action: "hand_on" },
+    { keywords: ["tắt điều khiển tay", "tắt chế độ tay", "tắt cử chỉ tay", "turn off hand control", "tắt tay"], action: "hand_off" },
+    { keywords: ["sang phải", "tiếp theo", "trang sau"], action: "move_right" },
+    { keywords: ["sang trái", "lùi lại", "trang trước"], action: "move_left" },
+    { keywords: ["trang chủ", "home", "quay về trang chủ"], action: "navigate", page: "home" },
+    { keywords: ["sản phẩm", "product", "mở sản phẩm"], action: "navigate", page: "product" },
+    { keywords: ["vr", "thực tế ảo", "trang vr"], action: "navigate", page: "vr" },
+    { keywords: ["ar", "thực tế tăng cường", "trang ar"], action: "navigate", page: "ar" },
     { keywords: ["detection", "nhận diện"], action: "navigate", page: "detection" },
-    { keywords: ["giải pháp", "solution"], action: "navigate", page: "solution" },
-    { keywords: ["công ty", "company", "về chúng tôi"], action: "navigate", page: "company" },
-    { keywords: ["liên hệ", "contact"], action: "navigate", page: "contact" }
+    { keywords: ["giải pháp", "solution", "trang giải pháp"], action: "navigate", page: "solution" },
+    { keywords: ["công ty", "company", "về chúng tôi", "thông tin công ty"], action: "navigate", page: "company" },
+    { keywords: ["liên hệ", "contact", "trang liên hệ"], action: "navigate", page: "contact" }
 ];
 
 let isVoiceListening = false; let isCommandProcessing = false; 
@@ -1318,11 +1316,13 @@ if (SpeechRecognition) {
         }
     });
     recognition.onerror = (event) => { if (event.error === 'not-allowed' || event.error === 'aborted') { isVoiceListening = false; voiceBtn.classList.remove("listening"); addLogToUI("❌ Lỗi Micro: Quyền bị từ chối.", "log-error"); } };
+    
     recognition.onresult = async (event) => {
         if (isCommandProcessing || isAISpeaking) return; 
         const result = event.results[event.resultIndex][0]; let transcript = result.transcript.toLowerCase().trim().replace(/[.,!?]/g, "");
         if (result.confidence < 0.6 || transcript.length <= 2 || !transcript.match(/[a-z0-9]/i) || /^([a-zơôoăâeêiuưy])\1+$/i.test(transcript.replace(/\s/g, ''))) return;
         addLogToUI(`🎤 "${transcript}"`, "log-user"); isCommandProcessing = true; 
+        
         try {
             if (isGaming) {
                 if (transcript.includes("reset") || transcript.includes("chơi lại")) { resetCurrentGame(); return; }
@@ -1331,13 +1331,19 @@ if (SpeechRecognition) {
                     toggleFullScreen(true); stopGame(); return; 
                 }
             }
+            
+            // [KIỂM TRA NỘI BỘ] - Zero Token Cost
+            // Nếu khớp các lệnh trong web, chạy luôn không gửi lên AI
             let exactMatch = null;
             for (const item of localKeywordMap) { if (item.keywords.some(kw => transcript.includes(kw))) { exactMatch = item; break; } }
-            if (exactMatch) executeLocalAction(exactMatch);
-            else {
-                addLogToUI("🧠 Đang hỏi AI Gemini...", "log-sys");
-                if(aiStatusText) aiStatusText.innerText = "Đang xử lý...";
-                await callGeminiToNavigate(transcript); 
+            
+            if (exactMatch) {
+                executeLocalAction(exactMatch);
+            } else {
+                // [GỌI AI] - Chỉ gọi khi người dùng hỏi câu ngoài luồng (kiến thức, thời tiết...)
+                addLogToUI("🧠 Đang tìm kiếm thông tin...", "log-sys");
+                if(aiStatusText) aiStatusText.innerText = "Đang tra cứu...";
+                await callGeminiToAnswer(transcript); 
             }
         } finally { setTimeout(() => { isCommandProcessing = false; }, 2000); }
     };
@@ -1362,31 +1368,40 @@ function executeLocalAction(matchObj) {
     else if (matchObj.action === "navigate") navigateTo(matchObj.page);
 }
 
-async function callGeminiToNavigate(text) {
-    const prompt = `Bạn là AI Onion Tech Support. Nhiệm vụ:
-    1. Lệnh điều hướng (VR, AR, thoát, bật tắt, dịch, mở ứng dụng) trả JSON: {"action": "action_name", "targetLang": "en", "page": "url", "game": "shooter/hockey/stylist"}. (Các action hợp lệ: start_game, exit_action, fullscreen, translate_lang, toggle_hand, navigate).
-    2. Lệnh start_game hỗ trợ "game": "shooter" (Space Shooter), "hockey" (Air Hockey), "stylist" (Face Detection).
-    3. Nếu hỏi ngoài luồng, dùng Google Search và trả lời NGẮN (dưới 30 từ): {"action": "action_answer", "response": "trả lời", "lang": "${currentLang}"}.
-    CHỈ TRẢ VỀ JSON hợp lệ, KHÔNG diễn giải.`;
+// Hàm mới: Siêu nén Prompt để tiết kiệm Token, chỉ dùng để trả lời kiến thức và search thời tiết
+async function callGeminiToAnswer(text) {
+    // Truyền trực tiếp câu hỏi của user vào để AI biết cần search gì.
+    const prompt = `Người dùng hỏi: "${text}".
+Hãy trả lời ngắn gọn, thân thiện (dưới 40 từ). Dùng công cụ tìm kiếm nếu cần thông tin thực tế.
+CHỈ TRẢ VỀ CHUỖI JSON ĐỊNH DẠNG: {"action": "action_answer", "response": "câu trả lời của bạn"}`;
+    
     try {
         if (!navigator.onLine) throw new Error("OFFLINE_NETWORK");
-        const payload = { contents: [{ parts: [{ text: prompt }] }], tools: [{ googleSearch: {} }] };
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY_VOICE}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-        if (!response.ok) throw new Error(`HTTP_ERROR`);
-        const data = await response.json();
-        const intent = JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/g, '').trim());
+        const payload = { 
+            contents: [{ parts: [{ text: prompt }] }], 
+            tools: [{ googleSearch: {} }],
+            // Ép output ra chuẩn JSON để tránh sinh chữ thừa tốn token
+            generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
+        };
         
-        if (intent.action === "start_game") startGame(intent.game || 'random');
-        else if (intent.action === "exit_action") { toggleFullScreen(true); if (isGaming) stopGame(); else navigateTo('detection'); }
-        else if (intent.action === "fullscreen") toggleFullScreen();
-        else if (intent.action === "translate_lang") switchWebsiteLanguage(intent.targetLang);
-        else if (intent.action === "toggle_hand") toggleHandTracking(intent.state);
-        else if (intent.action === "navigate") navigateTo(intent.page);
-        else if (intent.action === "action_answer") updateAIAssistant(intent.response, true, intent.lang || currentLang);
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY_VOICE}`, { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json" }, 
+            body: JSON.stringify(payload) 
+        });
+        
+        if (!response.ok) throw new Error(`HTTP_ERROR`);
+        
+        const data = await response.json();
+        // Nhờ responseMimeType, không cần parse regex thủ công nữa
+        const intent = JSON.parse(data.candidates[0].content.parts[0].text);
+        
+        if (intent.action === "action_answer" || intent.response) {
+            updateAIAssistant(intent.response || "Tôi hiểu nhưng chưa tìm thấy câu trả lời.", true, currentLang);
+        }
     } catch (error) { 
-        let fallbackMatch = null;
-        for (const item of localKeywordMap) { if (item.keywords.some(kw => text.includes(kw))) { fallbackMatch = item; break; } }
-        if (fallbackMatch) executeLocalAction(fallbackMatch);
-        else { addLogToUI("❌ Lỗi mạng/Offline.", "log-error"); updateAIAssistant("Xin lỗi, tôi không xử lý được.", true, currentLang, true); }
+        console.log(error);
+        addLogToUI("❌ Lỗi mạng hoặc từ chối phản hồi.", "log-error"); 
+        updateAIAssistant("Xin lỗi, tôi không thể tra cứu thông tin lúc này.", true, currentLang, true);
     }
 }
