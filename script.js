@@ -115,7 +115,43 @@ function addLogToUI(message, type = "log-sys") {
 }
 
 // ----------------------------------------------------
-// [FACE TRACKING & PRESENCE LOGIC]
+// [HỆ THỐNG AUTO-ROTATE BẰNG AI] Lật khung hình thẳng đứng
+// ----------------------------------------------------
+let videoRotationAngle = 0; 
+let lastRotationTime = 0;
+const offscreenCanvas = document.createElement('canvas');
+const offscreenCtx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+
+function processVideoToOffscreen(videoEl) {
+    let vw = videoEl.videoWidth;
+    let vh = videoEl.videoHeight;
+    if (vw === 0 || vh === 0) return null;
+
+    if (videoRotationAngle === 0 && vw > vh && window.innerHeight > window.innerWidth && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        videoRotationAngle = 90;
+    }
+
+    if (videoRotationAngle === 90 || videoRotationAngle === 270) {
+        offscreenCanvas.width = vh; 
+        offscreenCanvas.height = vw;
+    } else {
+        offscreenCanvas.width = vw; 
+        offscreenCanvas.height = vh;
+    }
+
+    offscreenCtx.save();
+    if (videoRotationAngle === 90) { offscreenCtx.translate(vh, 0); offscreenCtx.rotate(90 * Math.PI / 180); }
+    else if (videoRotationAngle === 180) { offscreenCtx.translate(vw, vh); offscreenCtx.rotate(180 * Math.PI / 180); }
+    else if (videoRotationAngle === 270) { offscreenCtx.translate(0, vw); offscreenCtx.rotate(270 * Math.PI / 180); }
+    
+    offscreenCtx.drawImage(videoEl, 0, 0, vw, vh);
+    offscreenCtx.restore();
+
+    return offscreenCanvas;
+}
+
+// ----------------------------------------------------
+// [FACE TRACKING & PRESENCE LOGIC] Tích hợp cân bằng tự động
 // ----------------------------------------------------
 let isPersonPresent = false;
 let presenceTimeout = null;
@@ -146,7 +182,30 @@ async function initFaceDetection() {
         faceDetection = new FaceDetection({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`});
         faceDetection.setOptions({ model: 'short', minDetectionConfidence: 0.5 });
         faceDetection.onResults((results) => {
-            if (results.detections && results.detections.length > 0) { updatePresence(); }
+            if (results.detections && results.detections.length > 0) { 
+                updatePresence(); 
+                
+                let face = results.detections[0];
+                if (face.landmarks && face.landmarks.length >= 2) {
+                    let rightEye = face.landmarks[0]; 
+                    let leftEye = face.landmarks[1];
+                    
+                    let dx = (leftEye.x - rightEye.x) * offscreenCanvas.width;
+                    let dy = (leftEye.y - rightEye.y) * offscreenCanvas.height;
+                    let faceAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+                    
+                    let snap = 0;
+                    if (faceAngle > 55 && faceAngle <= 125) snap = 90;
+                    else if (faceAngle < -55 && faceAngle >= -125) snap = -90;
+                    else if (Math.abs(faceAngle) > 135) snap = 180;
+                    
+                    if (snap !== 0 && Date.now() - lastRotationTime > 3000) {
+                        videoRotationAngle = (videoRotationAngle - snap + 360) % 360;
+                        lastRotationTime = Date.now();
+                        addLogToUI(`🔄 AI: Đã tự động cân bằng khung hình để người dùng đứng thẳng.`, "log-sys");
+                    }
+                }
+            }
         });
     }
 }
@@ -415,7 +474,6 @@ function startGame(type) {
     document.getElementById('detection-normal-list').style.display = 'none';
     document.getElementById('game-container').style.display = 'block';
     
-    // Reset wrapper displays
     document.getElementById('canvas-game-wrapper').style.display = 'none';
     document.getElementById('stylist-game-wrapper').style.display = 'none';
     document.getElementById('game-status-hud').style.display = 'none';
@@ -468,7 +526,7 @@ function stopGame() {
     if (!isGaming) return;
     isGaming = false; isGameOver = false;
     
-    stopStylist(); // Cleanup for AI Stylist
+    stopStylist(); 
     
     if (gameLoopId) cancelAnimationFrame(gameLoopId);
     toggleFullScreen(true); 
@@ -479,7 +537,6 @@ function stopGame() {
     let dict = i18nData[currentLang] || i18nData['en'];
     if (dict.game_stop) updateAIAssistant(dict.game_stop);
     
-    // Đảm bảo luồng điều hướng quay về Detection (Nếu đang ở trang khác)
     navigateTo('detection', '', false);
 
     setTimeout(() => {
@@ -498,7 +555,7 @@ function resetCurrentGame() {
     document.getElementById('game-over-overlay').style.display = 'none';
     
     if (activeGameType === 'stylist') {
-        resetStylist(); // Reset lại toàn bộ đếm và giao diện Stylist
+        resetStylist(); 
         addLogToUI("🔄 Đã khởi động lại AI Stylist", "log-success");
     } else if (activeGameType === 'shooter') {
         shooterScore = 0; shooterGameStarted = false;
@@ -686,35 +743,36 @@ let stylistIntervalId = null;
 let stylistRenderId = null;
 let lastStylistPixels = null;
 let isStylistProcessing = false;
-let stylistUsageCount = 0; // Biến giới hạn 4 lần sử dụng (Reset khi mở)
+let stylistUsageCount = 0; 
 
 function initStylist() {
     resetStylist();
-    stylistUsageCount = 0; // Reset khi khởi động
+    stylistUsageCount = 0; 
     stylistLog(`Hệ thống AI Stylist - Sẵn sàng (Chu kỳ 20s) [0/4]`, "sys");
     
     const camCanvas = document.getElementById('stylist-cam-canvas');
     const camCtx = camCanvas.getContext('2d');
     const videoEl = document.getElementsByClassName('input_video')[0];
 
-    // Vẽ Video feed qua canvas cho Stylist UI
     function renderCam() {
         if (activeGameType === 'stylist' && isGaming) {
             camCtx.save();
             camCtx.translate(camCanvas.width, 0);
-            camCtx.scale(-1, 1);
-            if (videoEl && videoEl.videoWidth > 0) {
+            camCtx.scale(-1, 1); 
+            
+            if (offscreenCanvas && offscreenCanvas.width > 0) {
+                camCtx.drawImage(offscreenCanvas, 0, 0, camCanvas.width, camCanvas.height);
+            } else if (videoEl && videoEl.videoWidth > 0) {
                 camCtx.drawImage(videoEl, 0, 0, camCanvas.width, camCanvas.height);
             }
+            
             camCtx.restore();
             stylistRenderId = requestAnimationFrame(renderCam);
         }
     }
     renderCam();
 
-    // Chu kỳ 20s gọi LLM
     stylistIntervalId = setInterval(processStylistFrame, 20000);
-    // Nâng delay quét lần đầu lên 5s
     setTimeout(processStylistFrame, 5000);
 }
 
@@ -727,7 +785,7 @@ function stopStylist() {
 
 function resetStylist() {
     stopStylist();
-    stylistUsageCount = 0; // Reset khi user bấm Reset
+    stylistUsageCount = 0; 
     document.getElementById('stylist-logs-content').innerHTML = '<div style="color: #aaa;">[System] Hệ thống AI Stylist - Sẵn sàng...</div>';
     document.getElementById('stylist-cam-status').innerText = "Đang chờ...";
     
@@ -756,15 +814,15 @@ function stylistLog(msg, type) {
 async function processStylistFrame() {
     if (isStylistProcessing || activeGameType !== 'stylist' || !isGaming) return;
     const videoEl = document.getElementsByClassName('input_video')[0];
-    if (!videoEl || !videoEl.videoWidth) return;
+    const currentSrc = (offscreenCanvas && offscreenCanvas.width > 0) ? offscreenCanvas : videoEl;
+    if (!currentSrc || !currentSrc.width && !currentSrc.videoWidth) return;
     
     isStylistProcessing = true;
     
-    // Pixel Diff Logic (32x32 cho tối ưu)
     const diffCanvas = document.createElement('canvas');
     diffCanvas.width = 32; diffCanvas.height = 32;
     const diffCtx = diffCanvas.getContext('2d');
-    diffCtx.drawImage(videoEl, 0, 0, 32, 32);
+    diffCtx.drawImage(currentSrc, 0, 0, 32, 32);
     const currentPixels = diffCtx.getImageData(0, 0, 32, 32).data;
 
     let isDiff = true;
@@ -775,13 +833,11 @@ async function processStylistFrame() {
             let newLuma = 0.299 * currentPixels[i] + 0.587 * currentPixels[i+1] + 0.114 * currentPixels[i+2];
             if (Math.abs(oldLuma - newLuma) > 40) diffCount++;
         }
-        // Ngưỡng 15% để quyết định người không đổi / đổi quá ít
         if ((diffCount / 1024) * 100 < 15) isDiff = false; 
     }
 
     if (!isDiff) {
         stylistLog("Khách không đổi vị trí/dáng. Bỏ qua để tiết kiệm API.", "warn");
-        // Khách cũ -> Giữ nguyên kết quả và KHÔNG tăng bộ đếm 4 lần
         document.getElementById('stylist-cam-status').innerText = `Đã quét (Giữ Data) [${stylistUsageCount}/4]`;
         isStylistProcessing = false;
         return;
@@ -791,10 +847,9 @@ async function processStylistFrame() {
     stylistLog("Chuyển động mới / Khách mới. Đang gọi API...", "sys");
     document.getElementById('stylist-cam-status').innerText = `Đang phân tích... [${stylistUsageCount}/4]`;
 
-    // Capture Base64
     const captureCanvas = document.createElement('canvas');
     captureCanvas.width = 320; captureCanvas.height = 240;
-    captureCanvas.getContext('2d').drawImage(videoEl, 0, 0, 320, 240);
+    captureCanvas.getContext('2d').drawImage(currentSrc, 0, 0, 320, 240);
     const base64Img = captureCanvas.toDataURL('image/jpeg', 0.6).split(',')[1];
 
     const prompt = `Phân tích người trong ảnh và gợi ý style. 
@@ -818,7 +873,6 @@ Nếu không có người, trả về các mảng rỗng.`;
             generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
         };
 
-        // Yêu cầu bắt buộc sử dụng gemini-3.1-flash-lite-preview, fallback gemini-2.5-flash nếu chết API
         let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${API_KEY_FACE}`, {
             method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
         });
@@ -835,7 +889,6 @@ Nếu không có người, trả về các mảng rỗng.`;
         const textJSON = data.candidates[0].content.parts[0].text;
         const parsed = JSON.parse(textJSON.replace(/```json/gi, '').replace(/```/g, '').trim());
         
-        // Cập nhật thành công -> Tính thêm 1 lượt sử dụng
         stylistUsageCount++;
 
         const totalItems = Object.values(parsed).reduce((a, b) => a + (b ? b.length : 0), 0);
@@ -848,14 +901,11 @@ Nếu không có người, trả về các mảng rỗng.`;
             updateStylistDOM(parsed);
         }
 
-        // Tự động tắt App nếu đạt giới hạn
         if (stylistUsageCount >= 4) {
             stylistLog("✅ Đã đạt giới hạn 4 lần sử dụng. Đóng ứng dụng sau 5 giây...", "warn");
             document.getElementById('stylist-cam-status').innerText = `Hoàn tất [4/4] (Đang đóng...)`;
             setTimeout(() => {
-                if (activeGameType === 'stylist' && isGaming) {
-                    stopGame();
-                }
+                if (activeGameType === 'stylist' && isGaming) stopGame();
             }, 5000);
         }
 
@@ -913,8 +963,9 @@ function getDist(p1, p2) { return Math.hypot(p1.x - p2.x, p1.y - p2.y); }
 
 function checkHandClosed(landmarks) {
     const wrist = landmarks[0]; const middleBase = landmarks[9]; const handSize = getDist(wrist, middleBase); 
-    const isIndexFolded = getDist(landmarks[8], wrist) < handSize * 1.0;
-    const isMiddleFolded = getDist(landmarks[12], wrist) < handSize * 1.0;
+    // [CẬP NHẬT] Tăng độ nhạy bóp tay: khoảng cách ngón tay đến cổ tay nới lỏng từ 1.0 lên 1.3
+    const isIndexFolded = getDist(landmarks[8], wrist) < handSize * 1.3;
+    const isMiddleFolded = getDist(landmarks[12], wrist) < handSize * 1.3;
     return isIndexFolded && isMiddleFolded;
 }
 
@@ -925,9 +976,10 @@ function checkPinch(landmarks) {
     const wrist = landmarks[0];
     const middleBase = landmarks[9];
     const handSize = getDist(wrist, middleBase);
+    // [CẬP NHẬT] Tăng độ nhạy chụm tay: khoảng cách từ 0.4 lên 0.5
     const d1 = getDist(thumbTip, indexTip);
     const d2 = getDist(thumbTip, middleTip);
-    return (d1 < handSize * 0.4) || (d2 < handSize * 0.4);
+    return (d1 < handSize * 0.5) || (d2 < handSize * 0.5);
 }
 
 function checkOpenHand(landmarks) {
@@ -943,34 +995,36 @@ async function toggleHandTracking(forceState = null) {
     const cameraPreviewContainer = document.getElementById("camera-preview");
 
     if (targetState && !isHandTracking) {
-        initFaceDetection().then(() => { addLogToUI("👤 Đã tải hệ thống nhận diện khuôn mặt", "log-sys"); }).catch(e => console.log(e));
+        initFaceDetection().then(() => { addLogToUI("👤 Đã tải hệ thống nhận dạng không gian", "log-sys"); }).catch(e => console.log(e));
 
         if (!camera) {
-            // [CẬP NHẬT] - Kích hoạt Camera Trước ưu tiên trên Mobile
             const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             
             camera = new Camera(videoElement, {
                 onFrame: async () => { 
-                    if (hands) await hands.send({image: videoElement}); 
-                    if (faceDetection) { try { await faceDetection.send({image: videoElement}); } catch(e) {} }
+                    let processed = processVideoToOffscreen(videoElement);
+                    if (!processed) return;
+                    
+                    if (hands) await hands.send({image: processed}); 
+                    if (faceDetection) { try { await faceDetection.send({image: processed}); } catch(e) {} }
                 }, 
                 width: 320, 
                 height: 240,
-                facingMode: isMobileDevice ? 'user' : undefined // Ép dùng Camera trước
+                facingMode: isMobileDevice ? 'user' : undefined
             });
         }
         camera.start(); isHandTracking = true; handBtn.classList.add("listening"); 
         if (voiceLogContainer) voiceLogContainer.style.display = "none";
-        if (cameraPreviewContainer) cameraPreviewContainer.style.display = "block"; // Bật khung camera
+        if (cameraPreviewContainer) cameraPreviewContainer.style.display = "block"; 
 
-        addLogToUI("🖐 Đã BẬT Camera Detection (Phía trước)", "log-sys");
+        addLogToUI("🖐 Đã BẬT Camera Detection (Auto-Rotation On)", "log-sys");
         let dict = i18nData[currentLang] || i18nData['en'];
         if(dict.handOn) updateAIAssistant(dict.handOn);
     } else if (!targetState && isHandTracking) {
         if (camera) camera.stop();
         isHandTracking = false; handBtn.classList.remove("listening"); 
         if (voiceLogContainer) voiceLogContainer.style.display = "none"; 
-        if (cameraPreviewContainer) cameraPreviewContainer.style.display = "none"; // Tắt khung camera
+        if (cameraPreviewContainer) cameraPreviewContainer.style.display = "none"; 
         virtualCursor.style.display = "none";
         isPersonPresent = false; if (!isAISpeaking) setAIAvatarState('idle');
         addLogToUI("⏸ Đã TẮT Camera Detection", "log-sys");
@@ -1008,35 +1062,17 @@ function onHandResults(results) {
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-    // [CẬP NHẬT] - Logic Xử Lý Hình Ảnh Nằm Ngang & Đổi Trục Hand Control (Portrait Override)
-    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const isLandscapeFeed = videoElement.videoWidth > videoElement.videoHeight;
-    const forcePortrait = isMobileDevice && isLandscapeFeed; // Nếu máy đang xuất ngang trên thiết bị di động
-
-    // Áp dụng CSS để xoay trực tiếp ô Canvas nhỏ hiển thị tay 
-    if (forcePortrait) {
-        // Xoay 90 độ và scale vừa khung
-        canvasElement.style.transform = "rotate(90deg) scale(1.35)";
-    } else {
-        canvasElement.style.transform = "none";
-    }
+    canvasElement.style.transform = "none";
 
     let activeHands = [];
     if (results.multiHandLandmarks) {
         for (let i = 0; i < results.multiHandLandmarks.length; i++) {
-            let lm = results.multiHandLandmarks[i][9]; // Lấy base ngón giữa làm mốc
+            let lm = results.multiHandLandmarks[i][9]; 
+            
             let rawX = lm.x;
             let rawY = lm.y;
-            
-            let adjustedX, adjustedY;
-            if (forcePortrait) {
-                // Đảo ngược trục X và Y toán học để người dùng vuốt dọc tay vẫn nhận dọc Web
-                adjustedX = rawY; 
-                adjustedY = rawX; 
-            } else {
-                adjustedX = 1 - rawX; // Chuẩn Mirror mặc định
-                adjustedY = rawY;
-            }
+            let adjustedX = 1 - rawX; 
+            let adjustedY = rawY; 
 
             activeHands.push({
                 x: adjustedX * 800, y: adjustedY * 500,
@@ -1056,11 +1092,14 @@ function onHandResults(results) {
 
         const hideVirtualCursor = isGaming && !isGameOver && (activeGameType === 'shooter' || activeGameType === 'hockey');
 
+        // [XỬ LÝ DÀNH RIÊNG CHO GAME SHOOTER/HOCKEY]
         if (hideVirtualCursor) {
             virtualCursor.style.display = "none";
-            const isClosed = checkHandClosed(activeHands[0].landmarks);
             
-            if (isClosed && canAct) { 
+            // [CẬP NHẬT] Cho phép dùng cử chỉ Nắm Tay (bóp) VÀ Chụm Tay (pinch) để thoát game dễ hơn
+            const isExitGesture = checkHandClosed(activeHands[0].landmarks) || checkPinch(activeHands[0].landmarks);
+            
+            if (isExitGesture && canAct) { 
                 stopGame(); 
                 lastGlobalActionTime = now; 
                 canvasCtx.restore(); 
@@ -1118,6 +1157,7 @@ function onHandResults(results) {
             canvasCtx.restore(); return; 
         }
 
+        // [XỬ LÝ CHUỘT ẢO VÀ GIAO DIỆN STYLIST]
         let bestHand = activeHands[0];
         if (activeHands.length > 1) {
             let minDist = Infinity;
@@ -1156,7 +1196,8 @@ function onHandResults(results) {
                 lastGlobalActionTime = now; 
             }
             
-            if (activeGameType === 'stylist' && isGaming && isClosed && canAct) {
+            // [CẬP NHẬT] Thoát Stylist nhạy bén hơn bằng mọi thao tác bóp/chụm tay
+            if (activeGameType === 'stylist' && isGaming && canAct) {
                 stopGame();
                 lastGlobalActionTime = now;
             }
@@ -1184,19 +1225,17 @@ function onHandResults(results) {
 
         wasHandClosed = isClickGesture; 
         const wrist = landmarks[0]; 
-        // Lấy Path dựa trên trục gốc vì draw Connectors sẽ vẽ trên màn thẳng
+        
         handPath.push({ x: wrist.x, y: wrist.y }); if (handPath.length > 15) handPath.shift();
 
         drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 3}); drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
 
         if (handPath.length >= 10 && !isGameOver && canAct) {
-            // Check Path ngang/dọc
             const rawDx = handPath[handPath.length - 1].x - handPath[0].x; 
             const rawDy = handPath[handPath.length - 1].y - handPath[0].y; 
             
-            // Re-map Dx Dy nếu máy xoay ngang
-            let dx = forcePortrait ? -rawDy : -rawDx; // -rawDx vì mặc định đã mirror
-            let dy = forcePortrait ? rawDx : rawDy;
+            let dx = -rawDx; 
+            let dy = rawDy;
 
             if (isOpenHand && Math.abs(dx) > 0.15 && Math.abs(dx) > Math.abs(dy) * 1.5) { 
                 movePage(dx > 0.15 ? -1 : 1); 
