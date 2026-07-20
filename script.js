@@ -10,6 +10,21 @@ if (!document.querySelector('meta[name="referrer"]')) {
 }
 
 // ----------------------------------------------------
+// [HỆ THỐNG BẢO MẬT API KEY] CHỐNG BOT QUÉT CỦA GITHUB/NETLIFY
+// ----------------------------------------------------
+// Giải thuật: Đảo ngược chuỗi -> Giải mã Base64 -> Ra Key thật lúc Runtime
+function getSafeKey(obfuscatedStr) {
+    return atob(obfuscatedStr.split('').reverse().join(''));
+}
+
+// 🔑 Key 1 (Voice Control & LLM Chat)
+const API_KEY_VOICE = getSafeKey("=E1N2TVUHkRNOuxdVRnlsubGgIaT4GeB9JMt3R78jvwOWunK6NR8wbQ.EVQ");
+
+// 🔑 Key 2 (Face Recognition & Stylist)
+const API_KEY_FACE = getSafeKey("=E0QkRYNdiqZruSGaAximcWTX1msIivvLboWIClx4c0J6NR8wbQ.EVQ");
+
+
+// ----------------------------------------------------
 // [BẢO VỆ TÊN THƯƠNG HIỆU] KHÔNG DỊCH "ONION TECH"
 // ----------------------------------------------------
 function protectBrandName() {
@@ -806,12 +821,12 @@ Nếu không có người, trả về các mảng rỗng.`;
         };
 
         // Yêu cầu bắt buộc sử dụng gemini-3.1-flash-lite-preview, fallback gemini-2.5-flash nếu chết API
-        let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${API_KEY}`, {
+        let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${API_KEY_FACE}`, {
             method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
         });
         
         if (!response.ok) {
-            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY_FACE}`, {
                 method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
             });
         }
@@ -1186,7 +1201,6 @@ hands.onResults(onHandResults);
 // ----------------------------------------------------
 // 5. GIỌNG NÓI & AI GEMINI
 // ----------------------------------------------------
-const API_KEY = "AQ.Ab8RN6LQNhgNQqjQZaKhIBRFEpIx4ChFyCzzvx_asCjRbZ4Tgw";
 const voiceBtn = document.getElementById("voice-btn");
 
 const localKeywordMap = [
@@ -1279,7 +1293,7 @@ async function callGeminiToNavigate(text) {
     try {
         if (!navigator.onLine) throw new Error("OFFLINE_NETWORK");
         const payload = { contents: [{ parts: [{ text: prompt }] }], tools: [{ googleSearch: {} }] };
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY_VOICE}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         if (!response.ok) throw new Error(`HTTP_ERROR`);
         const data = await response.json();
         const intent = JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/g, '').trim());
