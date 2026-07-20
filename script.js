@@ -963,7 +963,6 @@ function getDist(p1, p2) { return Math.hypot(p1.x - p2.x, p1.y - p2.y); }
 
 function checkHandClosed(landmarks) {
     const wrist = landmarks[0]; const middleBase = landmarks[9]; const handSize = getDist(wrist, middleBase); 
-    // [CẬP NHẬT] Tăng độ nhạy bóp tay: khoảng cách ngón tay đến cổ tay nới lỏng từ 1.0 lên 1.3
     const isIndexFolded = getDist(landmarks[8], wrist) < handSize * 1.3;
     const isMiddleFolded = getDist(landmarks[12], wrist) < handSize * 1.3;
     return isIndexFolded && isMiddleFolded;
@@ -976,7 +975,6 @@ function checkPinch(landmarks) {
     const wrist = landmarks[0];
     const middleBase = landmarks[9];
     const handSize = getDist(wrist, middleBase);
-    // [CẬP NHẬT] Tăng độ nhạy chụm tay: khoảng cách từ 0.4 lên 0.5
     const d1 = getDist(thumbTip, indexTip);
     const d2 = getDist(thumbTip, middleTip);
     return (d1 < handSize * 0.5) || (d2 < handSize * 0.5);
@@ -1060,8 +1058,14 @@ function isClickableElement(el) {
 function onHandResults(results) {
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    
+    // [CẬP NHẬT] Lật gương (Mirror Flip) để sửa lỗi ngược góc nhìn
+    canvasCtx.translate(canvasElement.width, 0);
+    canvasCtx.scale(-1, 1);
+    
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
+    // Vô hiệu hóa CSS quay của phiên bản cũ để tránh đè lớp lật
     canvasElement.style.transform = "none";
 
     let activeHands = [];
@@ -1092,11 +1096,9 @@ function onHandResults(results) {
 
         const hideVirtualCursor = isGaming && !isGameOver && (activeGameType === 'shooter' || activeGameType === 'hockey');
 
-        // [XỬ LÝ DÀNH RIÊNG CHO GAME SHOOTER/HOCKEY]
         if (hideVirtualCursor) {
             virtualCursor.style.display = "none";
             
-            // [CẬP NHẬT] Cho phép dùng cử chỉ Nắm Tay (bóp) VÀ Chụm Tay (pinch) để thoát game dễ hơn
             const isExitGesture = checkHandClosed(activeHands[0].landmarks) || checkPinch(activeHands[0].landmarks);
             
             if (isExitGesture && canAct) { 
@@ -1157,7 +1159,6 @@ function onHandResults(results) {
             canvasCtx.restore(); return; 
         }
 
-        // [XỬ LÝ CHUỘT ẢO VÀ GIAO DIỆN STYLIST]
         let bestHand = activeHands[0];
         if (activeHands.length > 1) {
             let minDist = Infinity;
@@ -1196,7 +1197,6 @@ function onHandResults(results) {
                 lastGlobalActionTime = now; 
             }
             
-            // [CẬP NHẬT] Thoát Stylist nhạy bén hơn bằng mọi thao tác bóp/chụm tay
             if (activeGameType === 'stylist' && isGaming && canAct) {
                 stopGame();
                 lastGlobalActionTime = now;
@@ -1241,6 +1241,7 @@ function onHandResults(results) {
                 movePage(dx > 0.15 ? -1 : 1); 
                 lastGlobalActionTime = now; 
                 handPath = []; 
+                canvasCtx.restore(); // BẢN VÁ: Gọi restore trước khi thoát hàm sớm
                 return; 
             }
             
@@ -1251,6 +1252,7 @@ function onHandResults(results) {
                 window.scrollBy({top: dy < 0 ? -dynamicScroll : dynamicScroll, behavior: 'smooth'}); 
                 lastGlobalActionTime = now; 
                 handPath = []; 
+                canvasCtx.restore(); // BẢN VÁ: Gọi restore trước khi thoát hàm sớm
                 return;
             }
         }
