@@ -10,14 +10,15 @@ if (!document.querySelector('meta[name="referrer"]')) {
 }
 
 // ----------------------------------------------------
-// [BẢO VỆ TÊN THƯƠNG HIỆU] KHÔNG DỊCH "ONION TECH"
+// [BẢO VỆ TÊN THƯƠNG HIỆU] KHÔNG DỊCH "ONION TECH" & CÁC TỪ KHÓA
 // ----------------------------------------------------
 function protectBrandName() {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
     const nodesToReplace = [];
     let node;
+    const regex = /(Onion Tech|Motion Detection|Face Detection|\bVR\b|\bAR\b|\bDetection\b)/i;
     while (node = walker.nextNode()) {
-        if (node.nodeValue.match(/Onion Tech/i)) {
+        if (node.nodeValue.match(regex)) {
             let parent = node.parentElement;
             if (parent && parent.tagName !== 'SCRIPT' && parent.tagName !== 'STYLE' && !parent.classList.contains('notranslate')) {
                 nodesToReplace.push(node);
@@ -26,7 +27,7 @@ function protectBrandName() {
     }
     nodesToReplace.forEach(n => {
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = n.nodeValue.replace(/(Onion Tech)/gi, '<span class="notranslate">$1</span>');
+        tempDiv.innerHTML = n.nodeValue.replace(/(Onion Tech|Motion Detection|Face Detection|\bVR\b|\bAR\b|\bDetection\b)/gi, '<span class="notranslate">$1</span>');
         while(tempDiv.firstChild) {
             n.parentNode.insertBefore(tempDiv.firstChild, n);
         }
@@ -35,7 +36,7 @@ function protectBrandName() {
 }
 
 // ----------------------------------------------------
-// [HỆ THỐNG DỊCH TỰ ĐỘNG] TIÊM GOOGLE TRANSLATE ELEMENT & ẨN KHUNG BANNER TẬN GỐC
+// [HỆ THỐNG DỊCH TỰ ĐỘNG] TIÊM GOOGLE TRANSLATE ELEMENT
 // ----------------------------------------------------
 function injectGoogleTranslate() {
     if (!document.getElementById('google_translate_element')) {
@@ -87,27 +88,35 @@ function injectGoogleTranslate() {
 }
 
 // ----------------------------------------------------
-// 1. TỪ ĐIỂN ĐA NGÔN NGỮ & TÊN TRANG THÂN THIỆN
+// 1. TỪ ĐIỂN MAP 100 NGÔN NGỮ & XỬ LÝ TEXT ZERO-TOKEN
 // ----------------------------------------------------
 const logContent = document.getElementById("log-content");
 const aiStatusText = document.getElementById("ai-status-text");
 
 let currentLang = 'vi'; 
-const supportedLangs = ['vi', 'en', 'zh', 'ja', 'ko', 'fr', 'de', 'es'];
 
-function generateMultiLangDictionary() {
-    return {
-        'vi': { lang_switched: "Đã chuyển đổi toàn bộ nội dung sang Tiếng Việt.", navigating: (p) => `Đang chuyển hướng tới trang ${p}.`, handOn: "Đã bật chế độ điều khiển bằng cử chỉ tay.", handOff: "Đã tắt chế độ điều khiển bằng cử chỉ tay.", voiceOn: "Đã bật chế độ điều khiển bằng giọng nói.", voiceOff: "Đã tắt nhận diện giọng nói.", who_am_i: "Tôi là trợ lý AI của Onion Tech Support.", game_start: "Ứng dụng đã khởi động!", game_stop: "Đã thoát ứng dụng và quay lại trang Detection." },
-        'en': { lang_switched: "All content has been translated to English.", navigating: (p) => `Navigating to ${p} page.`, handOn: "Hand gesture control mode activated.", voiceOn: "Voice control mode activated.", who_am_i: "I am the AI assistant of Onion Tech.", game_start: "App started!", game_stop: "App exited, returning to Detection page." },
-        'zh': { lang_switched: "所有内容已翻译成中文。", navigating: (p) => `正在导航到 ${p} 页面。`, handOn: "手势控制模式已开启。", voiceOn: "语音控制模式已开启。", who_am_i: "我是 Onion Tech 的 AI 助手。", game_start: "应用已启动!", game_stop: "已退出并返回检测页面." }
-    };
+const langMap = {
+    "việt": "vi", "việt nam": "vi", "anh": "en", "trung": "zh-CN", "trung quốc": "zh-CN", "hoa": "zh-CN",
+    "nhật": "ja", "nhật bản": "ja", "hàn": "ko", "hàn quốc": "ko", "pháp": "fr", "đức": "de",
+    "tây ban nha": "es", "nga": "ru", "ý": "it", "italia": "it", "thái": "th", "thái lan": "th",
+    "indonesia": "id", "mã lai": "ms", "malaysia": "ms", "ấn độ": "hi", "hindi": "hi",
+    "ả rập": "ar", "thổ nhĩ kỳ": "tr", "bồ đào nha": "pt", "hà lan": "nl", "thụy điển": "sv",
+    "ba lan": "pl", "đan mạch": "da", "phần lan": "fi", "hy lạp": "el", "na uy": "no",
+    "séc": "cs", "rumani": "ro", "hungary": "hu", "ukraine": "uk", "philipin": "tl", "philippines": "tl"
+};
+
+async function translateZeroToken(text, toLang) {
+    try {
+        let res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${toLang}&dt=t&q=${encodeURIComponent(text)}`);
+        let data = await res.json();
+        return data[0].map(x => x[0]).join('');
+    } catch(e) { return text; }
 }
-const i18nData = generateMultiLangDictionary();
 
 function addLogToUI(message, type = "log-sys") {
     const logEl = document.createElement("div");
     logEl.className = `log-msg ${type}`;
-    logEl.innerHTML = message.replace(/(Onion Tech)/gi, '<span class="notranslate">$1</span>');
+    logEl.innerHTML = message.replace(/(Onion Tech|Motion Detection|Face Detection|\bVR\b|\bAR\b|\bDetection\b)/gi, '<span class="notranslate">$1</span>');
     if(logContent) {
         logContent.appendChild(logEl);
         logContent.scrollTop = logContent.scrollHeight;
@@ -202,7 +211,7 @@ async function initFaceDetection() {
                     if (snap !== 0 && Date.now() - lastRotationTime > 3000) {
                         videoRotationAngle = (videoRotationAngle - snap + 360) % 360;
                         lastRotationTime = Date.now();
-                        addLogToUI(`🔄 AI: Đã tự động cân bằng khung hình.`, "log-sys");
+                        addLogToUI(`🔄 AI: Đã cân bằng khung hình tự động.`, "log-sys");
                     }
                 }
             }
@@ -319,11 +328,16 @@ document.addEventListener('click', function(e) {
 
 window.addEventListener('DOMContentLoaded', () => {
     if (document.cookie.includes('googtrans=/vi/en')) { document.cookie = "googtrans=/vi/vi; path=/"; }
-    setAIAvatarState('idle'); injectGoogleTranslate(); protectBrandName(); 
+    setAIAvatarState('idle'); 
+    injectGoogleTranslate(); 
+    protectBrandName(); 
+    
+    // Tự động ép dịch sang tiếng Việt trên trang ban đầu
+    setTimeout(() => { switchWebsiteLanguage('vi', true); }, 1500); 
 });
 
 // ----------------------------------------------------
-// 2. TTS - GOOGLE NATIVE VOICE 
+// 2. TTS - GOOGLE NATIVE VOICE & TRANSLATE ENGINE
 // ----------------------------------------------------
 let isAISpeaking = false; 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -338,7 +352,7 @@ function speakAI(text, lang = currentLang, isError = false) {
     let cleanText = text.replace(/[*_#\n]/g, " ").replace(/\s+/g, " ").trim();
     if (!cleanText) { playNextAudioQueue(); return; }
 
-    let tl = lang === 'en' ? 'en' : lang === 'zh' || lang === 'zh-CN' ? 'zh-CN' : lang === 'ko' ? 'ko' : lang === 'ja' ? 'ja' : lang === 'fr' ? 'fr' : lang === 'de' ? 'de' : lang === 'es' ? 'es' : 'vi';
+    let tl = lang === 'zh' ? 'zh-CN' : lang; // Đảm bảo mã chuẩn Google TTS
     let chunks = cleanText.match(/[^.?!,;]+[.?!,;]+/g) || [cleanText]; 
 
     chunks.forEach(chunk => {
@@ -362,19 +376,29 @@ function playNextAudioQueue() {
 
 function updateAIAssistant(text, speak = true, lang = currentLang, isError = false) {
     if (aiStatusText) {
-        aiStatusText.innerHTML = text.replace(/(Onion Tech)/gi, '<span class="notranslate">$1</span>');
+        aiStatusText.innerHTML = text.replace(/(Onion Tech|Motion Detection|Face Detection|\bVR\b|\bAR\b|\bDetection\b)/gi, '<span class="notranslate">$1</span>');
         aiStatusText.style.animation = 'none'; aiStatusText.offsetHeight; aiStatusText.style.animation = 'fadeIn 0.5s';
     }
     addLogToUI(`🤖 AI: "${text}"`, "log-gemini");
     if (speak) speakAI(text, lang, isError);
 }
 
-function switchWebsiteLanguage(targetLang) {
-    if (!supportedLangs.includes(targetLang)) targetLang = 'en';
+// Hàm cốt lõi: Tự động dịch câu trả lời Local sang ngôn ngữ hiện tại
+async function speakLocal(viText, isError = false) {
+    let finalText = viText;
+    if (currentLang !== 'vi') {
+        finalText = await translateZeroToken(viText, currentLang);
+    }
+    updateAIAssistant(finalText, true, currentLang, isError);
+}
+
+function switchWebsiteLanguage(targetLang, silent = false) {
+    if (targetLang === 'zh') targetLang = 'zh-CN';
     currentLang = targetLang; 
-    addLogToUI(`🌐 Đã chuyển ngôn ngữ website sang: ${targetLang.toUpperCase()}`, "log-success");
+    
+    addLogToUI(`🌐 Đã chuyển ngôn ngữ website sang mã: ${targetLang.toUpperCase()}`, "log-success");
     const triggerTranslation = (selectEl) => {
-        selectEl.value = targetLang === 'zh' ? 'zh-CN' : targetLang;
+        selectEl.value = targetLang;
         selectEl.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
     };
     let gtSelect = document.querySelector('select.goog-te-combo');
@@ -387,8 +411,7 @@ function switchWebsiteLanguage(targetLang) {
             attempts++; if(attempts > 20) clearInterval(interval); 
         }, 100);
     }
-    let dict = i18nData[currentLang] || i18nData['en'];
-    updateAIAssistant(dict.lang_switched, true, targetLang);
+    if (!silent) speakLocal("Đã chuyển đổi toàn bộ nội dung sang ngôn ngữ mới.");
 }
 
 function loadContent(pageId) {
@@ -402,8 +425,7 @@ function navigateTo(page, sectionId = "", speakAI_flag = true) {
     if (page) {
         loadContent(page);
         if (speakAI_flag) {
-            let dict = i18nData[currentLang] || i18nData['en'];
-            if (dict && dict.navigating) updateAIAssistant(dict.navigating(page), true, currentLang); 
+            speakLocal(`Đang chuyển hướng tới trang ${page}.`); 
         }
         if (sectionId) {
             setTimeout(() => {
@@ -423,17 +445,19 @@ function movePage(direction) {
     navigateTo(pagesOrder[nextIndex], "", true);
 }
 
-function toggleFullScreen(forceExit = false) {
+function toggleFullScreen(forceExit = false, silent = false) {
     const container = document.getElementById('game-container');
     const fsBtnIcon = document.querySelector('#btn-fullscreen i');
     if (forceExit || container.classList.contains('fake-fullscreen')) {
         container.classList.remove('fake-fullscreen');
         if (fsBtnIcon) fsBtnIcon.className = "fas fa-expand";
         addLogToUI("🗗 Đã THOÁT chế độ toàn màn hình", "log-sys");
+        if (!silent) speakLocal("Đã thoát chế độ toàn màn hình.");
     } else {
         container.classList.add('fake-fullscreen');
         if (fsBtnIcon) fsBtnIcon.className = "fas fa-compress";
         addLogToUI("🗖 Đã BẬT chế độ toàn màn hình", "log-success");
+        if (!silent) speakLocal("Đã bật chế độ toàn màn hình.");
     }
 }
 
@@ -486,7 +510,8 @@ function startGame(type) {
         document.getElementById('stylist-game-wrapper').style.display = 'flex';
         document.getElementById('game-title').innerHTML = `<i class="fas fa-magic"></i> Face Recognition & AI Stylist`;
         initStylist();
-        addLogToUI("🎮 Đã mở Ứng dụng: Face Detection", "log-success");
+        addLogToUI("🎮 Đã mở Ứng dụng: Nhận diện khuôn mặt", "log-success");
+        speakLocal("Đã mở tính năng nhận diện khuôn mặt và gợi ý thời trang.");
     } 
     else {
         document.getElementById('canvas-game-wrapper').style.display = 'block';
@@ -507,18 +532,15 @@ function startGame(type) {
             document.getElementById('game-status-hud').innerText = `Score: 0`;
             addLogToUI("🎮 Đã mở Game 2: Air Hockey", "log-success");
         }
+        speakLocal("Ứng dụng đã khởi động!");
     }
     
-    let dict = i18nData[currentLang] || i18nData['en'];
-    if (dict.game_start) updateAIAssistant(dict.game_start);
     if (gameLoopId) cancelAnimationFrame(gameLoopId);
     gameLoop();
 
     setTimeout(() => {
         const gameContainer = document.getElementById('game-container');
-        if (gameContainer) {
-            gameContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        if (gameContainer) gameContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 300);
 }
 
@@ -529,23 +551,18 @@ function stopGame() {
     stopStylist(); 
     
     if (gameLoopId) cancelAnimationFrame(gameLoopId);
-    toggleFullScreen(true); 
+    toggleFullScreen(true, true); 
     document.getElementById('game-container').style.display = 'none';
     document.getElementById('detection-normal-list').style.display = 'block';
     
     addLogToUI("🛑 Đã thoát App và quay lại menu", "log-sys");
-    let dict = i18nData[currentLang] || i18nData['en'];
-    if (dict.game_stop) updateAIAssistant(dict.game_stop);
+    speakLocal("Đã thoát ứng dụng và quay lại trang nhận diện chuyển động.");
     
     navigateTo('detection', '', false);
-
     setTimeout(() => {
         const detSection = document.getElementById('detection');
-        if (detSection) {
-            detSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        if (detSection) detSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 300);
 }
 
@@ -557,6 +574,7 @@ function resetCurrentGame() {
     if (activeGameType === 'stylist') {
         resetStylist(); 
         addLogToUI("🔄 Đã khởi động lại AI Stylist", "log-success");
+        speakLocal("Đã khởi động lại nhận diện khuôn mặt.");
     } else if (activeGameType === 'shooter') {
         shooterScore = 0; shooterGameStarted = false;
         shooterSlots[0].hp = 10; shooterSlots[0].isDead = false; shooterSlots[0].hasJoined = false; shooterSlots[0].isTracking = false;
@@ -565,11 +583,13 @@ function resetCurrentGame() {
         bullets = []; enemies = []; enemyBullets = []; frameCount = 0;
         document.getElementById('game-status-hud').innerText = `Score: 0`;
         addLogToUI("🔄 Đã chơi lại Game Bắn Ruồi", "log-success");
+        speakLocal("Đã chơi lại game bắn ruồi.");
     } else if (activeGameType === 'hockey') {
         hockeyScore = { blue: 0, red: 0 }; resetHockeyPuck();
         targetPaddles = [ { x: 150, y: 250 }, { x: 650, y: 250 } ];
         document.getElementById('game-status-hud').innerText = `Score: 0`;
         addLogToUI("🔄 Đã chơi lại Game Khúc Côn Cầu", "log-success");
+        speakLocal("Đã chơi lại game khúc côn cầu.");
     }
 }
 
@@ -584,9 +604,7 @@ function gameLoop() {
             if (activeGameType === 'shooter') renderShooterGame(ctx);
             else if (activeGameType === 'hockey') renderHockeyGame(ctx);
             
-            if (isGameOver) {
-                document.getElementById('game-over-overlay').style.display = 'flex';
-            }
+            if (isGameOver) document.getElementById('game-over-overlay').style.display = 'flex';
         }
     }
     gameLoopId = requestAnimationFrame(gameLoop);
@@ -737,7 +755,7 @@ function checkHockeyWinner() {
 }
 
 // ----------------------------------------------------
-// 3.5. HỆ THỐNG AI STYLIST (CAMERA DETECTION) - GIỮ NGUYÊN
+// 3.5. HỆ THỐNG AI STYLIST (CAMERA DETECTION)
 // ----------------------------------------------------
 let stylistIntervalId = null;
 let stylistRenderId = null;
@@ -1015,9 +1033,8 @@ async function toggleHandTracking(forceState = null) {
         if (voiceLogContainer) voiceLogContainer.style.display = "none";
         if (cameraPreviewContainer) cameraPreviewContainer.style.display = "block"; 
 
-        addLogToUI("🖐 Đã BẬT Camera Detection (Auto-Rotation On)", "log-sys");
-        let dict = i18nData[currentLang] || i18nData['en'];
-        if(dict.handOn) updateAIAssistant(dict.handOn);
+        addLogToUI("🖐 Đã BẬT Camera Detection", "log-sys");
+        speakLocal("Đã bật chế độ điều khiển bằng cử chỉ tay.");
     } else if (!targetState && isHandTracking) {
         if (camera) camera.stop();
         isHandTracking = false; handBtn.classList.remove("listening"); 
@@ -1025,7 +1042,9 @@ async function toggleHandTracking(forceState = null) {
         if (cameraPreviewContainer) cameraPreviewContainer.style.display = "none"; 
         virtualCursor.style.display = "none";
         isPersonPresent = false; if (!isAISpeaking) setAIAvatarState('idle');
+        
         addLogToUI("⏸ Đã TẮT Camera Detection", "log-sys");
+        speakLocal("Đã tắt điều khiển bằng tay.");
     }
 }
 handBtn.addEventListener("click", () => toggleHandTracking());
@@ -1058,10 +1077,8 @@ function isClickableElement(el) {
 function onHandResults(results) {
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    
     canvasCtx.translate(canvasElement.width, 0);
     canvasCtx.scale(-1, 1);
-    
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
     canvasElement.style.transform = "none";
 
@@ -1069,7 +1086,6 @@ function onHandResults(results) {
     if (results.multiHandLandmarks) {
         for (let i = 0; i < results.multiHandLandmarks.length; i++) {
             let lm = results.multiHandLandmarks[i][9]; 
-            
             let rawX = lm.x;
             let rawY = lm.y;
             let adjustedX = 1 - rawX; 
@@ -1090,12 +1106,10 @@ function onHandResults(results) {
         
         const now = Date.now();
         const canAct = (now - lastGlobalActionTime) > GLOBAL_COOLDOWN; 
-
         const hideVirtualCursor = isGaming && !isGameOver && (activeGameType === 'shooter' || activeGameType === 'hockey');
 
         if (hideVirtualCursor) {
             virtualCursor.style.display = "none";
-            
             const isExitGesture = checkHandClosed(activeHands[0].landmarks) || checkPinch(activeHands[0].landmarks);
             
             if (isExitGesture && canAct) { 
@@ -1263,89 +1277,146 @@ const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@me
 hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
 hands.onResults(onHandResults);
 
+
 // ----------------------------------------------------
-// 5. GIỌNG NÓI & AI GEMINI - CẬP NHẬT CHẶN CẤP LOCAL ĐỂ TIẾT KIỆM TOKEN
+// 5. GIỌNG NÓI & AI GEMINI (TÍCH HỢP MUSIC & ĐỘ ƯU TIÊN)
 // ----------------------------------------------------
-const API_KEY_VOICE = atob("QVEuQWI4Uk42S251V093djg3UjN0TUo5QmVHNFBUYWlHZ0J1c2xuUlZkeHVOUmtHVVR2NVE=");
+const API_KEY_VOICE = atob("QVEuQWI4Uk42SXZuYXFJUHl3YTdiRERjTjNOYWU0emFHTEQxaUpoS1NDblMyYmk4ZXo5alE=");
 const API_KEY_FACE = atob("QVEuQWI4Uk42SjBjNGR4bENJV29iTHZ2SWlzbTFYVFdjbWlBeGFHU3VyWnFpZE5Za3JSQ0E=");
 
 const voiceBtn = document.getElementById("voice-btn");
 
-// Đã mở rộng thêm các từ khóa để đảm bảo KHÔNG gọi Gemini khi người dùng muốn thao tác trên web
 const localKeywordMap = [
-    { keywords: ["face detection", "nhận diện khuôn mặt", "nhận diện", "ai stylist", "trợ lý thời trang", "mở camera", "mở nhận diện"], action: "start_game", game: "stylist" },
-    { keywords: ["chơi game space shooter", "chơi space shooter", "space shooter", "bắn ruồi", "bắn súng không gian", "play space shooter"], action: "start_game", game: "shooter" },
-    { keywords: ["chơi game air hockey", "chơi air hockey", "air hockey", "khúc côn cầu", "play air hockey"], action: "start_game", game: "hockey" },
-    { keywords: ["chơi game", "play a game", "mở game"], action: "start_game", game: "random" },
-    { keywords: ["full screen", "toàn màn hình", "fullscreen", "phóng to"], action: "fullscreen" },
-    { keywords: ["thoát", "exit", "close", "quit", "quitter", "salir", "schließen", "đóng"], action: "exit_action" },
-    { keywords: ["reset game", "chơi lại", "restart", "làm lại"], action: "reset_game" },
-    { keywords: ["dịch sang tiếng anh", "translate to english", "tiếng anh", "chuyển sang tiếng anh"], action: "translate_lang", targetLang: "en" },
-    { keywords: ["dịch sang tiếng việt", "translate to vietnamese", "tiếng việt", "chuyển sang tiếng việt"], action: "translate_lang", targetLang: "vi" },
-    { keywords: ["dịch sang tiếng trung", "tiếng trung", "trung quốc"], action: "translate_lang", targetLang: "zh" },
-    { keywords: ["dịch sang tiếng hàn", "tiếng hàn", "hàn quốc"], action: "translate_lang", targetLang: "ko" },
-    { keywords: ["dịch sang tiếng nhật", "tiếng nhật", "nhật bản"], action: "translate_lang", targetLang: "ja" },
-    { keywords: ["dịch sang tiếng pháp", "tiếng pháp"], action: "translate_lang", targetLang: "fr" },
-    { keywords: ["bật điều khiển tay", "bật chế độ tay", "bật cử chỉ tay", "turn on hand control", "bật tay"], action: "hand_on" },
-    { keywords: ["tắt điều khiển tay", "tắt chế độ tay", "tắt cử chỉ tay", "turn off hand control", "tắt tay"], action: "hand_off" },
+    // Lệnh Music (Mức Ưu Tiên Cao)
+    { keywords: ["phát nhạc random", "mở nhạc random", "phát nhạc ngẫu nhiên", "mở nhạc ngẫu nhiên"], action: "play_music_random" },
+    { keywords: ["phát nhạc", "bật nhạc", "mở nhạc", "nghe nhạc"], action: "play_music" },
+    { keywords: ["chuyển bài hát", "bật bài tiếp theo", "bài tiếp theo", "đổi bài", "chuyển bài", "next song"], action: "next_music" },
+    { keywords: ["tắt nhạc", "tắt bài hát", "ngừng nhạc", "dừng phát nhạc hoàn toàn"], action: "stop_music" },
+    { keywords: ["dừng nhạc", "tạm dừng nhạc", "pause nhạc"], action: "pause_music" },
+    { keywords: ["chạy nhạc tiếp", "tiếp tục nhạc", "phát tiếp", "phát lại nhạc", "tiếp tục phát nhạc"], action: "resume_music" },
+
+    // Lệnh Game
+    { keywords: ["face detection", "nhận diện khuôn mặt", "ai stylist", "trợ lý thời trang"], action: "start_game", game: "stylist" },
+    { keywords: ["chơi game space shooter", "chơi space shooter", "bắn ruồi", "bắn súng không gian", "phi thuyền"], action: "start_game", game: "shooter" },
+    { keywords: ["chơi game air hockey", "chơi air hockey", "khúc côn cầu", "bóng bàn"], action: "start_game", game: "hockey" },
+    { keywords: ["chơi game", "giải trí"], action: "start_game", game: "random" },
+    { keywords: ["chơi lại", "làm lại", "bắt đầu lại"], action: "reset_game" },
+    
+    // Lệnh Hệ Thống/Giao diện
+    { keywords: ["bật điều khiển tay", "bật chế độ tay", "bật cử chỉ tay", "dùng tay", "kích hoạt điều khiển tay"], action: "hand_on" },
+    { keywords: ["tắt điều khiển tay", "tắt chế độ tay", "tắt cử chỉ tay", "ngừng dùng tay", "vô hiệu hóa điều khiển tay"], action: "hand_off" },
+    { keywords: ["toàn màn hình", "phóng to"], action: "fullscreen" },
+    { keywords: ["thoát", "đóng", "tắt", "rời khỏi"], action: "exit_action" },
+
+    // Lệnh Điều hướng trang
     { keywords: ["sang phải", "tiếp theo", "trang sau"], action: "move_right" },
     { keywords: ["sang trái", "lùi lại", "trang trước"], action: "move_left" },
-    { keywords: ["trang chủ", "home", "quay về trang chủ"], action: "navigate", page: "home" },
-    { keywords: ["sản phẩm", "product", "mở sản phẩm"], action: "navigate", page: "product" },
-    { keywords: ["vr", "thực tế ảo", "trang vr"], action: "navigate", page: "vr" },
-    { keywords: ["ar", "thực tế tăng cường", "trang ar"], action: "navigate", page: "ar" },
-    { keywords: ["detection", "nhận diện"], action: "navigate", page: "detection" },
-    { keywords: ["giải pháp", "solution", "trang giải pháp"], action: "navigate", page: "solution" },
-    { keywords: ["công ty", "company", "về chúng tôi", "thông tin công ty"], action: "navigate", page: "company" },
-    { keywords: ["liên hệ", "contact", "trang liên hệ"], action: "navigate", page: "contact" }
+    { keywords: ["trang chủ", "màn hình chính"], action: "navigate", page: "home" },
+    { keywords: ["sản phẩm"], action: "navigate", page: "product" },
+    { keywords: ["thực tế ảo", "vr"], action: "navigate", page: "vr" },
+    { keywords: ["thực tế tăng cường", "ar"], action: "navigate", page: "ar" }, 
+    { keywords: ["nhận diện chuyển động", "motion detection", "nhận diện", "detection"], action: "navigate", page: "detection" }, 
+    { keywords: ["giải pháp"], action: "navigate", page: "solution" },
+    { keywords: ["công ty", "về chúng tôi"], action: "navigate", page: "company" },
+    { keywords: ["liên hệ", "hỗ trợ"], action: "navigate", page: "contact" }
 ];
 
 let isVoiceListening = false; let isCommandProcessing = false; 
 
 if (SpeechRecognition) {
-    recognition = new SpeechRecognition(); recognition.lang = 'vi-VN'; recognition.interimResults = false; recognition.continuous = false; 
+    recognition = new SpeechRecognition(); 
+    recognition.lang = 'vi-VN'; 
+    recognition.interimResults = false; 
+    recognition.continuous = false; 
+
+    // [BẢN VÁ LỖI LẶP VOICE] Gỡ bỏ lệnh bật Micro tức thì tại đây!
     voiceBtn.addEventListener("click", () => {
         if (!isVoiceListening) {
             try {
-                recognition.start(); isVoiceListening = true; voiceBtn.classList.add("listening");
+                isVoiceListening = true; 
+                voiceBtn.classList.add("listening");
                 addLogToUI("▶ Đã BẬT Điều khiển Giọng nói", "log-sys");
-                let dict = i18nData[currentLang] || i18nData['en']; if (dict.voiceOn) updateAIAssistant(dict.voiceOn, true, currentLang);
+                speakLocal("Đã bật chế độ điều khiển bằng giọng nói."); 
+                // Không gọi recognition.start() ở đây nữa! 
+                // speakAI sẽ tự động kích hoạt Micro ngay khi đọc xong lời chào để tránh nghe chính giọng nó.
             } catch(e) {}
         } else {
-            isVoiceListening = false; recognition.stop(); voiceBtn.classList.remove("listening"); addLogToUI("⏸ Đã TẮT Điều khiển Giọng nói", "log-sys");
+            isVoiceListening = false; 
+            try { recognition.stop(); } catch(e) {}
+            voiceBtn.classList.remove("listening"); 
+            addLogToUI("⏸ Đã TẮT Điều khiển Giọng nói", "log-sys");
+            speakLocal("Đã tắt nhận diện giọng nói.");
         }
     });
-    recognition.onerror = (event) => { if (event.error === 'not-allowed' || event.error === 'aborted') { isVoiceListening = false; voiceBtn.classList.remove("listening"); addLogToUI("❌ Lỗi Micro: Quyền bị từ chối.", "log-error"); } };
-    
+
+    recognition.onerror = (event) => { 
+        if (event.error === 'not-allowed' || event.error === 'aborted') { 
+            isVoiceListening = false; voiceBtn.classList.remove("listening"); 
+            addLogToUI("❌ Lỗi Micro: Quyền bị từ chối.", "log-error"); 
+        } 
+    };
+
     recognition.onresult = async (event) => {
         if (isCommandProcessing || isAISpeaking) return; 
-        const result = event.results[event.resultIndex][0]; let transcript = result.transcript.toLowerCase().trim().replace(/[.,!?]/g, "");
-        if (result.confidence < 0.6 || transcript.length <= 2 || !transcript.match(/[a-z0-9]/i) || /^([a-zơôoăâeêiuưy])\1+$/i.test(transcript.replace(/\s/g, ''))) return;
-        addLogToUI(`🎤 "${transcript}"`, "log-user"); isCommandProcessing = true; 
+        const result = event.results[event.resultIndex][0]; 
+        let originalTranscript = result.transcript.toLowerCase().trim().replace(/[.,!?]/g, "");
+        if (result.confidence < 0.6 || originalTranscript.length <= 2 || !originalTranscript.match(/[a-z0-9]/i) || /^([a-zơôoăâeêiuưy])\1+$/i.test(originalTranscript.replace(/\s/g, ''))) return;
         
+        addLogToUI(`🎤 "${originalTranscript}"`, "log-user"); 
+        isCommandProcessing = true; 
+        try { recognition.stop(); } catch(e) {} // Khóa mic trong khi xử lý
+
         try {
-            if (isGaming) {
-                if (transcript.includes("reset") || transcript.includes("chơi lại")) { resetCurrentGame(); return; }
-                if (transcript.includes("full screen") || transcript.includes("fullscreen") || transcript.includes("toàn màn hình")) { toggleFullScreen(); return; }
-                if (localKeywordMap.find(m => m.action === "exit_action").keywords.some(kw => transcript.includes(kw))) { 
-                    toggleFullScreen(true); stopGame(); return; 
+            // Bước 1: Dịch ngầm câu nói về tiếng Việt (Zero-Token bypass)
+            let viTranscript = originalTranscript;
+            if (originalTranscript.length > 2) {
+                viTranscript = await translateZeroToken(originalTranscript, 'vi');
+                viTranscript = viTranscript.toLowerCase().trim().replace(/[.,!?]/g, "");
+                if (viTranscript !== originalTranscript) {
+                    addLogToUI(`🔤 Ý nghĩa (VN): "${viTranscript}"`, "log-sys");
                 }
             }
-            
-            // [KIỂM TRA NỘI BỘ] - Zero Token Cost
-            // Nếu khớp các lệnh trong web, chạy luôn không gửi lên AI
+
+            if (isGaming) {
+                if (viTranscript.includes("chơi lại") || viTranscript.includes("làm lại")) { resetCurrentGame(); return; }
+                if (viTranscript.includes("full screen") || viTranscript.includes("toàn màn hình") || viTranscript.includes("phóng to")) { toggleFullScreen(); return; }
+                if (localKeywordMap.find(m => m.action === "exit_action").keywords.some(kw => viTranscript.includes(kw) && !viTranscript.includes("nhạc"))) { 
+                    toggleFullScreen(true, true); stopGame(); return; 
+                }
+            }
+
             let exactMatch = null;
-            for (const item of localKeywordMap) { if (item.keywords.some(kw => transcript.includes(kw))) { exactMatch = item; break; } }
-            
+
+            // Bước 2: Regex tự động bắt lệnh dịch ngôn ngữ (100 Langs)
+            let langMatch = viTranscript.match(/(?:dịch|chuyển) (?:sang|thành|qua) (?:tiếng|ngôn ngữ) (.*)/);
+            if (langMatch) {
+                let langName = langMatch[1].trim();
+                let targetLang = langMap[langName];
+                if (targetLang) {
+                    exactMatch = { action: "translate_lang", targetLang: targetLang };
+                }
+            }
+
+            // Bước 3: So sánh với bộ từ khóa (Dựa theo thứ tự ưu tiên)
+            if (!exactMatch) {
+                for (const item of localKeywordMap) { 
+                    if (item.keywords.some(kw => viTranscript.includes(kw) || originalTranscript.includes(kw))) { 
+                        exactMatch = item; break; 
+                    } 
+                }
+            }
+
+            // Bước 4: Thực thi lệnh
             if (exactMatch) {
                 executeLocalAction(exactMatch);
             } else {
-                // [GỌI AI] - Chỉ gọi khi người dùng hỏi câu ngoài luồng (kiến thức, thời tiết...)
-                addLogToUI("🧠 Đang tìm kiếm thông tin...", "log-sys");
-                if(aiStatusText) aiStatusText.innerText = "Đang tra cứu...";
-                await callGeminiToAnswer(transcript); 
+                addLogToUI("🧠 Đang hỏi AI Gemini...", "log-sys");
+                if(aiStatusText) aiStatusText.innerText = "Đang xử lý...";
+                await callGeminiToNavigate(viTranscript); 
             }
-        } finally { setTimeout(() => { isCommandProcessing = false; }, 2000); }
+        } finally { 
+            setTimeout(() => { isCommandProcessing = false; }, 2000); 
+        }
     };
     recognition.onend = () => { if (isVoiceListening && !isAISpeaking) { setTimeout(() => { if (isVoiceListening && !isAISpeaking) { try { recognition.start(); } catch (e) {} } }, 500); } };
 }
@@ -1356,9 +1427,12 @@ function executeLocalAction(matchObj) {
     else if (matchObj.action === "reset_game") resetCurrentGame();
     else if (matchObj.action === "fullscreen") toggleFullScreen();
     else if (matchObj.action === "exit_action") { 
-        toggleFullScreen(true); 
+        toggleFullScreen(true, true); 
         if (isGaming) stopGame(); 
-        else navigateTo('detection'); 
+        else {
+            navigateTo('detection', "", false);
+            speakLocal("Đã thoát và quay lại trang nhận diện.");
+        } 
     }
     else if (matchObj.action === "translate_lang") switchWebsiteLanguage(matchObj.targetLang);
     else if (matchObj.action === "hand_on") toggleHandTracking(true);
@@ -1366,42 +1440,158 @@ function executeLocalAction(matchObj) {
     else if (matchObj.action === "move_right") movePage(1);
     else if (matchObj.action === "move_left") movePage(-1);
     else if (matchObj.action === "navigate") navigateTo(matchObj.page);
+    
+    // GỌI CÁC HÀM XỬ LÝ NHẠC
+    else if (matchObj.action === "play_music") playMusicLogic(false);
+    else if (matchObj.action === "play_music_random") playMusicLogic(true);
+    else if (matchObj.action === "next_music") nextMusicTrack();
+    else if (matchObj.action === "stop_music") stopMusicLogic();
+    else if (matchObj.action === "pause_music") pauseMusicLogic();
+    else if (matchObj.action === "resume_music") resumeMusicLogic();
 }
 
-// Hàm mới: Siêu nén Prompt để tiết kiệm Token, chỉ dùng để trả lời kiến thức và search thời tiết
-async function callGeminiToAnswer(text) {
-    // Truyền trực tiếp câu hỏi của user vào để AI biết cần search gì.
-    const prompt = `Người dùng hỏi: "${text}".
-Hãy trả lời ngắn gọn, thân thiện (dưới 40 từ). Dùng công cụ tìm kiếm nếu cần thông tin thực tế.
-CHỈ TRẢ VỀ CHUỖI JSON ĐỊNH DẠNG: {"action": "action_answer", "response": "câu trả lời của bạn"}`;
-    
+async function callGeminiToNavigate(text) {
+    const prompt = `Bạn là AI Onion Tech Support. Nhiệm vụ:
+1. Phân tích lệnh: "${text}".
+2. Nếu lệnh điều hướng web (VR, AR, thoát, bật tắt) trả về JSON format action phù hợp (start_game, exit_action, fullscreen, toggle_hand, navigate).
+   ĐẶC BIỆT: Nếu yêu cầu dịch sang ngôn ngữ bất kỳ, trả về {"action": "translate_lang", "targetLang": "MÃ ISO 639-1 của ngôn ngữ đó"}.
+   Nếu lệnh điều khiển nhạc: trả về action phù hợp: play_music, play_music_random, next_music, stop_music, pause_music, resume_music.
+3. Nếu người dùng hỏi các vấn đề ngoài website (Ví dụ: Thời tiết hôm nay, tin tức, kiến thức...), dùng công cụ Google Search để lấy dữ liệu. Sau đó trả lời NGẮN GỌN (dưới 30 từ). Trả về JSON: {"action": "action_answer", "response": "câu trả lời", "lang": "${currentLang}"}.
+Chỉ trả về chuỗi JSON hợp lệ.`;
+
     try {
         if (!navigator.onLine) throw new Error("OFFLINE_NETWORK");
-        const payload = { 
-            contents: [{ parts: [{ text: prompt }] }], 
-            tools: [{ googleSearch: {} }],
-            // Ép output ra chuẩn JSON để tránh sinh chữ thừa tốn token
-            generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
-        };
         
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY_VOICE}`, { 
-            method: "POST", 
-            headers: { "Content-Type": "application/json" }, 
-            body: JSON.stringify(payload) 
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+            tools: [{ googleSearch: {} }] 
+        };
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY_VOICE}`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
         });
         
         if (!response.ok) throw new Error(`HTTP_ERROR`);
         
         const data = await response.json();
-        // Nhờ responseMimeType, không cần parse regex thủ công nữa
-        const intent = JSON.parse(data.candidates[0].content.parts[0].text);
+        let resultText = data.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/g, '').trim();
+        const intent = JSON.parse(resultText);
         
-        if (intent.action === "action_answer" || intent.response) {
-            updateAIAssistant(intent.response || "Tôi hiểu nhưng chưa tìm thấy câu trả lời.", true, currentLang);
+        if (intent.action === "start_game") startGame(intent.game || 'random');
+        else if (intent.action === "exit_action") { 
+            toggleFullScreen(true, true); 
+            if (isGaming) stopGame(); 
+            else { navigateTo('detection', "", false); speakLocal("Đã thoát và quay lại trang nhận diện."); } 
         }
+        else if (intent.action === "fullscreen") toggleFullScreen();
+        else if (intent.action === "translate_lang") switchWebsiteLanguage(intent.targetLang);
+        else if (intent.action === "toggle_hand") toggleHandTracking(intent.state !== undefined ? intent.state : null);
+        else if (intent.action === "navigate") navigateTo(intent.page);
+        
+        // Điều khiển nhạc qua Gemini
+        else if (intent.action === "play_music") playMusicLogic(false);
+        else if (intent.action === "play_music_random") playMusicLogic(true);
+        else if (intent.action === "next_music") nextMusicTrack();
+        else if (intent.action === "stop_music") stopMusicLogic();
+        else if (intent.action === "pause_music") pauseMusicLogic();
+        else if (intent.action === "resume_music") resumeMusicLogic();
+        
+        else if (intent.action === "action_answer") updateAIAssistant(intent.response, true, intent.lang || currentLang);
+        
     } catch (error) { 
-        console.log(error);
-        addLogToUI("❌ Lỗi mạng hoặc từ chối phản hồi.", "log-error"); 
-        updateAIAssistant("Xin lỗi, tôi không thể tra cứu thông tin lúc này.", true, currentLang, true);
+        console.error("Gemini Error: ", error);
+        let fallbackMatch = null;
+        for (const item of localKeywordMap) {
+            if (item.keywords.some(kw => text.includes(kw))) { fallbackMatch = item; break; }
+        }
+        if (fallbackMatch) { executeLocalAction(fallbackMatch); } 
+        else {
+            addLogToUI("❌ Lỗi mạng hoặc AI quá tải.", "log-error");
+            speakLocal("Xin lỗi, tôi không thể xử lý thông tin này ngay bây giờ.", true);
+        }
     }
+}
+
+// ----------------------------------------------------
+// 6. HỆ THỐNG PHÁT NHẠC (HIDDEN MUSIC PLAYER)
+// ----------------------------------------------------
+// BẠN HÃY CHÈN ĐÚNG TÊN FILE NHẠC CỦA BẠN VÀO MẢNG BÊN DƯỚI NHÉ!
+let musicPlaylist = [
+    "music/song1.mp3",
+    "music/song2.mp3",
+    "music/song3.mp3",
+    "music/song4.mp3"
+]; 
+const audioPlayer = new Audio();
+let currentMusicIndex = 0;
+let isMusicRandom = false;
+let isMusicInitialized = false;
+
+audioPlayer.addEventListener('ended', () => {
+    nextMusicTrack(true); 
+});
+
+function playMusicLogic(random = false) {
+    if (musicPlaylist.length === 0) {
+        speakLocal("Không tìm thấy bài hát nào trong danh sách.");
+        return;
+    }
+    isMusicRandom = random;
+    if (isMusicRandom) {
+        currentMusicIndex = Math.floor(Math.random() * musicPlaylist.length);
+    } else {
+        currentMusicIndex = 0;
+    }
+    audioPlayer.src = musicPlaylist[currentMusicIndex];
+    audioPlayer.play().catch(e => console.log("Lỗi phát nhạc:", e));
+    isMusicInitialized = true;
+    speakLocal(random ? "Đã phát nhạc ngẫu nhiên." : "Đã bật nhạc.");
+    addLogToUI(`🎵 Đang phát: ${musicPlaylist[currentMusicIndex]}`, "log-sys");
+}
+
+function nextMusicTrack(isAutoNext = false) {
+    if (!isMusicInitialized) {
+        if(!isAutoNext) speakLocal("Vui lòng phát nhạc trước khi chuyển bài.");
+        return;
+    }
+    if (isMusicRandom) {
+        let newIndex = currentMusicIndex;
+        while (newIndex === currentMusicIndex && musicPlaylist.length > 1) {
+            newIndex = Math.floor(Math.random() * musicPlaylist.length);
+        }
+        currentMusicIndex = newIndex;
+    } else {
+        currentMusicIndex = (currentMusicIndex + 1) % musicPlaylist.length;
+    }
+    audioPlayer.src = musicPlaylist[currentMusicIndex];
+    audioPlayer.play().catch(e => console.log(e));
+    if(!isAutoNext) speakLocal("Đã chuyển bài hát tiếp theo.");
+    addLogToUI(`🎵 Đang phát: ${musicPlaylist[currentMusicIndex]}`, "log-sys");
+}
+
+function stopMusicLogic() {
+    if (!isMusicInitialized) return;
+    audioPlayer.pause();
+    audioPlayer.currentTime = 0;
+    isMusicInitialized = false;
+    speakLocal("Đã tắt nhạc hoàn toàn.");
+    addLogToUI(`🎵 Đã tắt nhạc.`, "log-sys");
+}
+
+function pauseMusicLogic() {
+    if (!isMusicInitialized) return;
+    audioPlayer.pause();
+    speakLocal("Đã tạm dừng nhạc.");
+    addLogToUI(`🎵 Đã tạm dừng nhạc.`, "log-sys");
+}
+
+function resumeMusicLogic() {
+    if (!isMusicInitialized) {
+        speakLocal("Chưa có bài hát nào đang mở.");
+        return;
+    }
+    audioPlayer.play().catch(e => console.log(e));
+    speakLocal("Đã tiếp tục phát nhạc.");
+    addLogToUI(`🎵 Tiếp tục phát.`, "log-sys");
 }
