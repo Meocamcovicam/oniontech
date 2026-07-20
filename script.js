@@ -10,21 +10,6 @@ if (!document.querySelector('meta[name="referrer"]')) {
 }
 
 // ----------------------------------------------------
-// [HỆ THỐNG BẢO MẬT API KEY] CHỐNG BOT QUÉT CỦA GITHUB/NETLIFY
-// ----------------------------------------------------
-// Giải thuật: Đảo ngược chuỗi -> Giải mã Base64 -> Ra Key thật lúc Runtime
-function getSafeKey(obfuscatedStr) {
-    return atob(obfuscatedStr.split('').reverse().join(''));
-}
-
-// 🔑 Key 1 (Voice Control & LLM Chat)
-const API_KEY_VOICE = getSafeKey("=E1N2TVUHkRNOuxdVRnlsubGgIaT4GeB9JMt3R78jvwOWunK6NR8wbQ.EVQ");
-
-// 🔑 Key 2 (Face Recognition & Stylist)
-const API_KEY_FACE = getSafeKey("=E0QkRYNdiqZruSGaAximcWTX1msIivvLboWIClx4c0J6NR8wbQ.EVQ");
-
-
-// ----------------------------------------------------
 // [BẢO VỆ TÊN THƯƠNG HIỆU] KHÔNG DỊCH "ONION TECH"
 // ----------------------------------------------------
 function protectBrandName() {
@@ -112,9 +97,9 @@ const supportedLangs = ['vi', 'en', 'zh', 'ja', 'ko', 'fr', 'de', 'es'];
 
 function generateMultiLangDictionary() {
     return {
-        'vi': { lang_switched: "Đã chuyển đổi toàn bộ nội dung sang Tiếng Việt.", navigating: (p) => `Đang chuyển hướng tới trang ${p}.`, handOn: "Đã bật chế độ điều khiển bằng cử chỉ tay.", handOff: "Đã tắt chế độ điều khiển bằng cử chỉ tay.", voiceOn: "Đã bật chế độ điều khiển bằng giọng nói.", voiceOff: "Đã tắt nhận diện giọng nói.", who_am_i: "Tôi là trợ lý AI của Onion Tech Support.", game_start: "Ứng dụng đã khởi động!", game_stop: "Đã thoát ứng dụng." },
-        'en': { lang_switched: "All content has been translated to English.", navigating: (p) => `Navigating to ${p} page.`, handOn: "Hand gesture control mode activated.", voiceOn: "Voice control mode activated.", who_am_i: "I am the AI assistant of Onion Tech.", game_start: "App started!", game_stop: "App exited." },
-        'zh': { lang_switched: "所有内容已翻译成中文。", navigating: (p) => `正在导航到 ${p} 页面。`, handOn: "手势控制模式已开启。", voiceOn: "语音控制模式已开启。", who_am_i: "我是 Onion Tech 的 AI 助手。", game_start: "应用已启动!", game_stop: "已退出." }
+        'vi': { lang_switched: "Đã chuyển đổi toàn bộ nội dung sang Tiếng Việt.", navigating: (p) => `Đang chuyển hướng tới trang ${p}.`, handOn: "Đã bật chế độ điều khiển bằng cử chỉ tay.", handOff: "Đã tắt chế độ điều khiển bằng cử chỉ tay.", voiceOn: "Đã bật chế độ điều khiển bằng giọng nói.", voiceOff: "Đã tắt nhận diện giọng nói.", who_am_i: "Tôi là trợ lý AI của Onion Tech Support.", game_start: "Ứng dụng đã khởi động!", game_stop: "Đã thoát ứng dụng và quay lại trang Detection." },
+        'en': { lang_switched: "All content has been translated to English.", navigating: (p) => `Navigating to ${p} page.`, handOn: "Hand gesture control mode activated.", voiceOn: "Voice control mode activated.", who_am_i: "I am the AI assistant of Onion Tech.", game_start: "App started!", game_stop: "App exited, returning to Detection page." },
+        'zh': { lang_switched: "所有内容已翻译成中文。", navigating: (p) => `正在导航到 ${p} 页面。`, handOn: "手势控制模式已开启。", voiceOn: "语音控制模式已开启。", who_am_i: "我是 Onion Tech 的 AI 助手。", game_start: "应用已启动!", game_stop: "已退出并返回检测页面." }
     };
 }
 const i18nData = generateMultiLangDictionary();
@@ -443,7 +428,7 @@ function startGame(type) {
         document.getElementById('stylist-game-wrapper').style.display = 'flex';
         document.getElementById('game-title').innerHTML = `<i class="fas fa-magic"></i> Face Recognition & AI Stylist`;
         initStylist();
-        addLogToUI("🎮 Đã mở Game: AI Stylist", "log-success");
+        addLogToUI("🎮 Đã mở Ứng dụng: Face Detection", "log-success");
     } 
     else {
         document.getElementById('canvas-game-wrapper').style.display = 'block';
@@ -457,12 +442,12 @@ function startGame(type) {
             targetShips = [ { x: 350, y: 440 }, { x: 450, y: 440 } ];
             bullets = []; enemies = []; enemyBullets = []; frameCount = 0;
             document.getElementById('game-status-hud').innerText = `Score: 0`;
-            addLogToUI("🎮 Đã mở Game 1: Bắn Ruồi", "log-success");
+            addLogToUI("🎮 Đã mở Game 1: Space Shooter", "log-success");
         } else if (type === 'hockey') {
             document.getElementById('game-title').innerHTML = `<i class="fas fa-table-tennis"></i> Game 2: Air Hockey`;
             hockeyScore = { blue: 0, red: 0 }; resetHockeyPuck();
             document.getElementById('game-status-hud').innerText = `Score: 0`;
-            addLogToUI("🎮 Đã mở Game 2: Khúc Côn Cầu", "log-success");
+            addLogToUI("🎮 Đã mở Game 2: Air Hockey", "log-success");
         }
     }
     
@@ -490,12 +475,20 @@ function stopGame() {
     document.getElementById('game-container').style.display = 'none';
     document.getElementById('detection-normal-list').style.display = 'block';
     
-    addLogToUI("🛑 Đã thoát App", "log-sys");
+    addLogToUI("🛑 Đã thoát App và quay lại menu", "log-sys");
     let dict = i18nData[currentLang] || i18nData['en'];
     if (dict.game_stop) updateAIAssistant(dict.game_stop);
+    
+    // Đảm bảo luồng điều hướng quay về Detection (Nếu đang ở trang khác)
+    navigateTo('detection', '', false);
 
     setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const detSection = document.getElementById('detection');
+        if (detSection) {
+            detSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     }, 300);
 }
 
@@ -505,8 +498,8 @@ function resetCurrentGame() {
     document.getElementById('game-over-overlay').style.display = 'none';
     
     if (activeGameType === 'stylist') {
-        resetStylist();
-        addLogToUI("🔄 Đã chơi lại (Reset) AI Stylist", "log-success");
+        resetStylist(); // Reset lại toàn bộ đếm và giao diện Stylist
+        addLogToUI("🔄 Đã khởi động lại AI Stylist", "log-success");
     } else if (activeGameType === 'shooter') {
         shooterScore = 0; shooterGameStarted = false;
         shooterSlots[0].hp = 10; shooterSlots[0].isDead = false; shooterSlots[0].hasJoined = false; shooterSlots[0].isTracking = false;
@@ -514,12 +507,12 @@ function resetCurrentGame() {
         targetShips = [ { x: 350, y: 440 }, { x: 450, y: 440 } ];
         bullets = []; enemies = []; enemyBullets = []; frameCount = 0;
         document.getElementById('game-status-hud').innerText = `Score: 0`;
-        addLogToUI("🔄 Đã chơi lại (Reset) Game Bắn Ruồi", "log-success");
+        addLogToUI("🔄 Đã chơi lại Game Bắn Ruồi", "log-success");
     } else if (activeGameType === 'hockey') {
         hockeyScore = { blue: 0, red: 0 }; resetHockeyPuck();
         targetPaddles = [ { x: 150, y: 250 }, { x: 650, y: 250 } ];
         document.getElementById('game-status-hud').innerText = `Score: 0`;
-        addLogToUI("🔄 Đã chơi lại (Reset) Game Khúc Côn Cầu", "log-success");
+        addLogToUI("🔄 Đã chơi lại Game Khúc Côn Cầu", "log-success");
     }
 }
 
@@ -687,16 +680,18 @@ function checkHockeyWinner() {
 }
 
 // ----------------------------------------------------
-// 3.5. HỆ THỐNG AI STYLIST (CAMERA DETECTION 1)
+// 3.5. HỆ THỐNG AI STYLIST (CAMERA DETECTION)
 // ----------------------------------------------------
 let stylistIntervalId = null;
 let stylistRenderId = null;
 let lastStylistPixels = null;
 let isStylistProcessing = false;
+let stylistUsageCount = 0; // Biến giới hạn 4 lần sử dụng (Reset khi mở)
 
 function initStylist() {
     resetStylist();
-    stylistLog("Hệ thống AI Stylist - Sẵn sàng (Chu kỳ 15s)", "sys");
+    stylistUsageCount = 0; // Reset khi khởi động
+    stylistLog(`Hệ thống AI Stylist - Sẵn sàng (Chu kỳ 20s) [0/4]`, "sys");
     
     const camCanvas = document.getElementById('stylist-cam-canvas');
     const camCtx = camCanvas.getContext('2d');
@@ -717,10 +712,10 @@ function initStylist() {
     }
     renderCam();
 
-    // Chu kỳ 15s gọi LLM
-    stylistIntervalId = setInterval(processStylistFrame, 15000);
-    // Quét lần đầu sau 2s
-    setTimeout(processStylistFrame, 2000);
+    // Chu kỳ 20s gọi LLM
+    stylistIntervalId = setInterval(processStylistFrame, 20000);
+    // Nâng delay quét lần đầu lên 5s
+    setTimeout(processStylistFrame, 5000);
 }
 
 function stopStylist() {
@@ -732,6 +727,7 @@ function stopStylist() {
 
 function resetStylist() {
     stopStylist();
+    stylistUsageCount = 0; // Reset khi user bấm Reset
     document.getElementById('stylist-logs-content').innerHTML = '<div style="color: #aaa;">[System] Hệ thống AI Stylist - Sẵn sàng...</div>';
     document.getElementById('stylist-cam-status').innerText = "Đang chờ...";
     
@@ -779,19 +775,21 @@ async function processStylistFrame() {
             let newLuma = 0.299 * currentPixels[i] + 0.587 * currentPixels[i+1] + 0.114 * currentPixels[i+2];
             if (Math.abs(oldLuma - newLuma) > 40) diffCount++;
         }
-        if ((diffCount / 1024) * 100 < 15) isDiff = false; // Ngưỡng 15%
+        // Ngưỡng 15% để quyết định người không đổi / đổi quá ít
+        if ((diffCount / 1024) * 100 < 15) isDiff = false; 
     }
 
     if (!isDiff) {
-        stylistLog("Phát hiện người. Trùng khách cũ -> Giữ nguyên kết quả.", "warn");
-        document.getElementById('stylist-cam-status').innerText = "Đã quét (Giữ Data)";
+        stylistLog("Khách không đổi vị trí/dáng. Bỏ qua để tiết kiệm API.", "warn");
+        // Khách cũ -> Giữ nguyên kết quả và KHÔNG tăng bộ đếm 4 lần
+        document.getElementById('stylist-cam-status').innerText = `Đã quét (Giữ Data) [${stylistUsageCount}/4]`;
         isStylistProcessing = false;
         return;
     }
 
     lastStylistPixels = currentPixels;
     stylistLog("Chuyển động mới / Khách mới. Đang gọi API...", "sys");
-    document.getElementById('stylist-cam-status').innerText = "Đang phân tích...";
+    document.getElementById('stylist-cam-status').innerText = `Đang phân tích... [${stylistUsageCount}/4]`;
 
     // Capture Base64
     const captureCanvas = document.createElement('canvas');
@@ -836,15 +834,29 @@ Nếu không có người, trả về các mảng rỗng.`;
         const data = await response.json();
         const textJSON = data.candidates[0].content.parts[0].text;
         const parsed = JSON.parse(textJSON.replace(/```json/gi, '').replace(/```/g, '').trim());
+        
+        // Cập nhật thành công -> Tính thêm 1 lượt sử dụng
+        stylistUsageCount++;
 
         const totalItems = Object.values(parsed).reduce((a, b) => a + (b ? b.length : 0), 0);
         if (totalItems === 0) {
-            stylistLog("Không nhận diện được người rõ ràng.", "err");
-            document.getElementById('stylist-cam-status').innerText = "Không thấy người";
+            stylistLog(`Không nhận diện được người rõ ràng. (Lần ${stylistUsageCount}/4)`, "err");
+            document.getElementById('stylist-cam-status').innerText = `Không thấy người [${stylistUsageCount}/4]`;
         } else {
-            stylistLog("Phân tích thành công: Đã cập nhật gợi ý.", "success");
-            document.getElementById('stylist-cam-status').innerText = "Đã cập nhật (Mới)";
+            stylistLog(`Phân tích thành công: Đã cập nhật gợi ý. (Lần ${stylistUsageCount}/4)`, "success");
+            document.getElementById('stylist-cam-status').innerText = `Đã cập nhật (Mới) [${stylistUsageCount}/4]`;
             updateStylistDOM(parsed);
+        }
+
+        // Tự động tắt App nếu đạt giới hạn
+        if (stylistUsageCount >= 4) {
+            stylistLog("✅ Đã đạt giới hạn 4 lần sử dụng. Đóng ứng dụng sau 5 giây...", "warn");
+            document.getElementById('stylist-cam-status').innerText = `Hoàn tất [4/4] (Đang đóng...)`;
+            setTimeout(() => {
+                if (activeGameType === 'stylist' && isGaming) {
+                    stopGame();
+                }
+            }, 5000);
         }
 
     } catch (e) {
@@ -891,7 +903,6 @@ const virtualCursor = document.getElementById("virtual-cursor");
 
 let isHandTracking = false; let camera = null; 
 
-// [CẬP NHẬT] - COOLDOWN CHUNG GLOBAL 3 GIÂY CHO TẤT CẢ ACTION DÙNG TAY
 let lastGlobalActionTime = 0; 
 const GLOBAL_COOLDOWN = 3000; 
 
@@ -900,7 +911,6 @@ let wasHandClosed = false; let isClicking = false; let clickStartX = 0; let clic
 
 function getDist(p1, p2) { return Math.hypot(p1.x - p2.x, p1.y - p2.y); }
 
-// Nắm tay (Đóng hoàn toàn) - Dành riêng cho thao tác CLICK / Thoát
 function checkHandClosed(landmarks) {
     const wrist = landmarks[0]; const middleBase = landmarks[9]; const handSize = getDist(wrist, middleBase); 
     const isIndexFolded = getDist(landmarks[8], wrist) < handSize * 1.0;
@@ -908,7 +918,6 @@ function checkHandClosed(landmarks) {
     return isIndexFolded && isMiddleFolded;
 }
 
-// Bóp tay (Chụm ngón cái và ngón trỏ/giữa) - Dành riêng cho thao tác KÉO TRANG
 function checkPinch(landmarks) {
     const thumbTip = landmarks[4];
     const indexTip = landmarks[8];
@@ -916,25 +925,18 @@ function checkPinch(landmarks) {
     const wrist = landmarks[0];
     const middleBase = landmarks[9];
     const handSize = getDist(wrist, middleBase);
-    
-    // Khoảng cách từ ngón cái đến trỏ / giữa
     const d1 = getDist(thumbTip, indexTip);
     const d2 = getDist(thumbTip, middleTip);
-    
-    // Nếu bóp nhẹ (khoảng cách nhỏ) => True
     return (d1 < handSize * 0.4) || (d2 < handSize * 0.4);
 }
 
-// Xoè tay - Dành riêng cho thao tác VUỐT SANG TRANG
 function checkOpenHand(landmarks) {
     const wrist = landmarks[0];
     const middleBase = landmarks[9];
     const handSize = getDist(wrist, middleBase);
-    // Ngón trỏ và ngón giữa duỗi ra xa khỏi cổ tay
     return getDist(landmarks[8], wrist) > handSize * 1.4 && getDist(landmarks[12], wrist) > handSize * 1.4;
 }
 
-// --- THAY ĐỔI Ở ĐÂY ---
 async function toggleHandTracking(forceState = null) {
     const targetState = forceState !== null ? forceState : !isHandTracking;
     const voiceLogContainer = document.getElementById("voice-log-container");
@@ -944,18 +946,24 @@ async function toggleHandTracking(forceState = null) {
         initFaceDetection().then(() => { addLogToUI("👤 Đã tải hệ thống nhận diện khuôn mặt", "log-sys"); }).catch(e => console.log(e));
 
         if (!camera) {
+            // [CẬP NHẬT] - Kích hoạt Camera Trước ưu tiên trên Mobile
+            const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
             camera = new Camera(videoElement, {
                 onFrame: async () => { 
                     if (hands) await hands.send({image: videoElement}); 
                     if (faceDetection) { try { await faceDetection.send({image: videoElement}); } catch(e) {} }
-                }, width: 320, height: 240
+                }, 
+                width: 320, 
+                height: 240,
+                facingMode: isMobileDevice ? 'user' : undefined // Ép dùng Camera trước
             });
         }
         camera.start(); isHandTracking = true; handBtn.classList.add("listening"); 
         if (voiceLogContainer) voiceLogContainer.style.display = "none";
         if (cameraPreviewContainer) cameraPreviewContainer.style.display = "block"; // Bật khung camera
 
-        addLogToUI("🖐 Đã BẬT Camera Detection", "log-sys");
+        addLogToUI("🖐 Đã BẬT Camera Detection (Phía trước)", "log-sys");
         let dict = i18nData[currentLang] || i18nData['en'];
         if(dict.handOn) updateAIAssistant(dict.handOn);
     } else if (!targetState && isHandTracking) {
@@ -1000,12 +1008,39 @@ function onHandResults(results) {
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
+    // [CẬP NHẬT] - Logic Xử Lý Hình Ảnh Nằm Ngang & Đổi Trục Hand Control (Portrait Override)
+    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isLandscapeFeed = videoElement.videoWidth > videoElement.videoHeight;
+    const forcePortrait = isMobileDevice && isLandscapeFeed; // Nếu máy đang xuất ngang trên thiết bị di động
+
+    // Áp dụng CSS để xoay trực tiếp ô Canvas nhỏ hiển thị tay 
+    if (forcePortrait) {
+        // Xoay 90 độ và scale vừa khung
+        canvasElement.style.transform = "rotate(90deg) scale(1.35)";
+    } else {
+        canvasElement.style.transform = "none";
+    }
+
     let activeHands = [];
     if (results.multiHandLandmarks) {
         for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+            let lm = results.multiHandLandmarks[i][9]; // Lấy base ngón giữa làm mốc
+            let rawX = lm.x;
+            let rawY = lm.y;
+            
+            let adjustedX, adjustedY;
+            if (forcePortrait) {
+                // Đảo ngược trục X và Y toán học để người dùng vuốt dọc tay vẫn nhận dọc Web
+                adjustedX = rawY; 
+                adjustedY = rawX; 
+            } else {
+                adjustedX = 1 - rawX; // Chuẩn Mirror mặc định
+                adjustedY = rawY;
+            }
+
             activeHands.push({
-                x: (1 - results.multiHandLandmarks[i][9].x) * 800, y: results.multiHandLandmarks[i][9].y * 500,
-                cx: (1 - results.multiHandLandmarks[i][9].x) * window.innerWidth, cy: results.multiHandLandmarks[i][9].y * window.innerHeight,
+                x: adjustedX * 800, y: adjustedY * 500,
+                cx: adjustedX * window.innerWidth, cy: adjustedY * window.innerHeight,
                 landmarks: results.multiHandLandmarks[i]
             });
         }
@@ -1017,19 +1052,17 @@ function onHandResults(results) {
         updatePresence(); 
         
         const now = Date.now();
-        const canAct = (now - lastGlobalActionTime) > GLOBAL_COOLDOWN; // Delay chung 3 giây cho mọi hành động
+        const canAct = (now - lastGlobalActionTime) > GLOBAL_COOLDOWN; 
 
-        // Disable virtual cursor during active canvas play ONLY for shooter and hockey
         const hideVirtualCursor = isGaming && !isGameOver && (activeGameType === 'shooter' || activeGameType === 'hockey');
 
         if (hideVirtualCursor) {
             virtualCursor.style.display = "none";
             const isClosed = checkHandClosed(activeHands[0].landmarks);
             
-            // Lối thoát App Game (Shooter/Hockey)
             if (isClosed && canAct) { 
                 stopGame(); 
-                lastGlobalActionTime = now; // Bật cờ Cooldown
+                lastGlobalActionTime = now; 
                 canvasCtx.restore(); 
                 return; 
             }
@@ -1085,7 +1118,6 @@ function onHandResults(results) {
             canvasCtx.restore(); return; 
         }
 
-        // Mouse Emulator (Hoạt động tốt trong Menu, Web và Stylist App)
         let bestHand = activeHands[0];
         if (activeHands.length > 1) {
             let minDist = Infinity;
@@ -1109,37 +1141,31 @@ function onHandResults(results) {
         const isPinching = checkPinch(landmarks);
         const isOpenHand = checkOpenHand(landmarks);
 
-        // Lệnh click chuột bao hàm cả nắm tay và bóp nhẹ (để tránh miss)
         let isClickGesture = isClosed || isPinching;
         let justClosedZoom = false;
         
-        // Bắt đầu bấm (Nhưng bị chặn nếu đang trong cooldown)
         if (!wasHandClosed && isClickGesture) {
             isClicking = true; 
             clickStartX = smoothCursor.x; clickStartY = smoothCursor.y; 
             virtualCursor.classList.add("clicking");
             
-            // Xử lý Thoát ảnh Zoom (Cần check canAct)
             if (window.isImageZoomed && window.zoomedImageOverlay && canAct) { 
                 closeImageZoom(); 
                 justClosedZoom = true; 
                 isClicking = false; 
-                lastGlobalActionTime = now; // Bật cờ Cooldown
+                lastGlobalActionTime = now; 
             }
             
-            // Lối thoát App Stylist nhanh: nắm tay / bóp
             if (activeGameType === 'stylist' && isGaming && isClosed && canAct) {
                 stopGame();
-                lastGlobalActionTime = now; // Bật cờ Cooldown
+                lastGlobalActionTime = now;
             }
         }
 
-        // Hủy thao tác Click nếu kéo chuột quá xa
         if (isClickGesture && isClicking) { 
             if (Math.hypot(smoothCursor.x - clickStartX, smoothCursor.y - clickStartY) > 50) isClicking = false; 
         }
 
-        // Hoàn thành lệnh Click (Nhả tay ra)
         if (wasHandClosed && !isClickGesture) {
             virtualCursor.classList.remove("clicking");
             
@@ -1152,38 +1178,39 @@ function onHandResults(results) {
                 }
                 addLogToUI("🖱 Đã Click bằng cử chỉ", "log-sys");
                 isClicking = false;
-                lastGlobalActionTime = now; // Bật cờ Cooldown 3s sau khi click
+                lastGlobalActionTime = now; 
             }
         }
 
         wasHandClosed = isClickGesture; 
         const wrist = landmarks[0]; 
-        handPath.push({ x: 1 - wrist.x, y: wrist.y }); if (handPath.length > 15) handPath.shift();
+        // Lấy Path dựa trên trục gốc vì draw Connectors sẽ vẽ trên màn thẳng
+        handPath.push({ x: wrist.x, y: wrist.y }); if (handPath.length > 15) handPath.shift();
 
         drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 3}); drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
 
-        // Xử lý Vuốt ngang và Cuộn dọc (Bảo vệ bởi Delay 3s)
         if (handPath.length >= 10 && !isGameOver && canAct) {
-            const dx = handPath[handPath.length - 1].x - handPath[0].x; 
-            const dy = handPath[handPath.length - 1].y - handPath[0].y; 
+            // Check Path ngang/dọc
+            const rawDx = handPath[handPath.length - 1].x - handPath[0].x; 
+            const rawDy = handPath[handPath.length - 1].y - handPath[0].y; 
             
-            // Swipe (Vuốt Chuyển Trang): Yêu cầu XÒE TAY, ưu tiên vuốt ngang
+            // Re-map Dx Dy nếu máy xoay ngang
+            let dx = forcePortrait ? -rawDy : -rawDx; // -rawDx vì mặc định đã mirror
+            let dy = forcePortrait ? rawDx : rawDy;
+
             if (isOpenHand && Math.abs(dx) > 0.15 && Math.abs(dx) > Math.abs(dy) * 1.5) { 
                 movePage(dx > 0.15 ? -1 : 1); 
-                lastGlobalActionTime = now; // Bật cờ Cooldown 3s
+                lastGlobalActionTime = now; 
                 handPath = []; 
                 return; 
             }
             
-            // Scroll (Kéo trang lên xuống): Yêu cầu BÓP TAY (Pinch), ưu tiên chuyển động dọc
             if (isPinching && Math.abs(dy) > 0.04 && Math.abs(dy) > Math.abs(dx) * 1.2) {
-                // Tăng hệ số độ nhạy lên 8 lần để kéo mượt & nhanh hơn
                 let dynamicScroll = Math.abs(dy) * window.innerHeight * 8; 
-                // Giới hạn max min của mỗi lần cuộn
                 dynamicScroll = Math.max(250, Math.min(dynamicScroll, window.innerHeight * 1.2)); 
                 
                 window.scrollBy({top: dy < 0 ? -dynamicScroll : dynamicScroll, behavior: 'smooth'}); 
-                lastGlobalActionTime = now; // Bật cờ Cooldown 3s
+                lastGlobalActionTime = now; 
                 handPath = []; 
                 return;
             }
@@ -1201,15 +1228,18 @@ hands.onResults(onHandResults);
 // ----------------------------------------------------
 // 5. GIỌNG NÓI & AI GEMINI
 // ----------------------------------------------------
+const API_KEY_VOICE = atob("QVEuQWI4Uk42S251V093djg3UjN0TUo5QmVHNFBUYWlHZ0J1c2xuUlZkeHVOUmtHVVR2NVE=");
+const API_KEY_FACE = atob("QVEuQWI4Uk42SjBjNGR4bENJV29iTHZ2SWlzbTFYVFdjbWlBeGFHU3VyWnFpZE5Za3JSQ0E=");
+
 const voiceBtn = document.getElementById("voice-btn");
 
 const localKeywordMap = [
-    { keywords: ["stylist", "nhận diện khuôn mặt", "nhận diện"], action: "start_game", game: "stylist" },
-    { keywords: ["space shooter", "bắn ruồi"], action: "start_game", game: "shooter" },
-    { keywords: ["air hockey", "khúc côn cầu"], action: "start_game", game: "hockey" },
-    { keywords: ["chơi game"], action: "start_game", game: "random" },
+    { keywords: ["face detection", "nhận diện khuôn mặt", "nhận diện", "ai stylist", "trợ lý thời trang", "人脸检测", "顔認識", "얼굴 인식", "détection de visage", "detección de rostros", "gesichtserkennung"], action: "start_game", game: "stylist" },
+    { keywords: ["chơi game space shooter", "chơi space shooter", "space shooter", "bắn ruồi", "bắn súng không gian", "play space shooter", "玩太空射击", "スペースシューター", "우주 슈팅", "jouer au tireur de l'espace", "espacio shooter"], action: "start_game", game: "shooter" },
+    { keywords: ["chơi game air hockey", "chơi air hockey", "air hockey", "khúc côn cầu", "play air hockey", "玩空气曲棍球", "エアホッケー", "에어 하키", "jouer au air hockey", "hockey de aire"], action: "start_game", game: "hockey" },
+    { keywords: ["chơi game", "play a game"], action: "start_game", game: "random" },
     { keywords: ["full screen", "toàn màn hình", "fullscreen", "phóng to"], action: "fullscreen" },
-    { keywords: ["thoát", "exit", "close"], action: "exit_action" },
+    { keywords: ["thoát", "exit", "close", "quit", "quitter", "salir", "schließen", "退出", "終了", "종료"], action: "exit_action" },
     { keywords: ["reset game", "chơi lại", "restart"], action: "reset_game" },
     { keywords: ["dịch sang tiếng anh", "translate to english", "tiếng anh"], action: "translate_lang", targetLang: "en" },
     { keywords: ["dịch sang tiếng việt", "translate to vietnamese", "tiếng việt"], action: "translate_lang", targetLang: "vi" },
@@ -1256,7 +1286,9 @@ if (SpeechRecognition) {
             if (isGaming) {
                 if (transcript.includes("reset") || transcript.includes("chơi lại")) { resetCurrentGame(); return; }
                 if (transcript.includes("full screen") || transcript.includes("fullscreen") || transcript.includes("toàn màn hình")) { toggleFullScreen(); return; }
-                if (transcript === "thoát" || transcript === "exit") { toggleFullScreen(true); stopGame(); return; }
+                if (localKeywordMap.find(m => m.action === "exit_action").keywords.some(kw => transcript.includes(kw))) { 
+                    toggleFullScreen(true); stopGame(); return; 
+                }
             }
             let exactMatch = null;
             for (const item of localKeywordMap) { if (item.keywords.some(kw => transcript.includes(kw))) { exactMatch = item; break; } }
@@ -1276,7 +1308,11 @@ function executeLocalAction(matchObj) {
     else if (matchObj.action === "stop_game") stopGame();
     else if (matchObj.action === "reset_game") resetCurrentGame();
     else if (matchObj.action === "fullscreen") toggleFullScreen();
-    else if (matchObj.action === "exit_action") { toggleFullScreen(true); if (isGaming) stopGame(); }
+    else if (matchObj.action === "exit_action") { 
+        toggleFullScreen(true); 
+        if (isGaming) stopGame(); 
+        else navigateTo('detection'); 
+    }
     else if (matchObj.action === "translate_lang") switchWebsiteLanguage(matchObj.targetLang);
     else if (matchObj.action === "hand_on") toggleHandTracking(true);
     else if (matchObj.action === "hand_off") toggleHandTracking(false);
@@ -1287,8 +1323,9 @@ function executeLocalAction(matchObj) {
 
 async function callGeminiToNavigate(text) {
     const prompt = `Bạn là AI Onion Tech Support. Nhiệm vụ:
-    1. Lệnh điều hướng (VR, AR, thoát, bật tắt, dịch) trả JSON: {"action": "action_name", "targetLang": "en", "page": "url"}. (start_game, exit_action, fullscreen, translate_lang, toggle_hand, navigate).
-    2. Nếu hỏi ngoài luồng, dùng Google Search và trả lời NGẮN (dưới 30 từ): {"action": "action_answer", "response": "trả lời", "lang": "${currentLang}"}.
+    1. Lệnh điều hướng (VR, AR, thoát, bật tắt, dịch, mở ứng dụng) trả JSON: {"action": "action_name", "targetLang": "en", "page": "url", "game": "shooter/hockey/stylist"}. (Các action hợp lệ: start_game, exit_action, fullscreen, translate_lang, toggle_hand, navigate).
+    2. Lệnh start_game hỗ trợ "game": "shooter" (Space Shooter), "hockey" (Air Hockey), "stylist" (Face Detection).
+    3. Nếu hỏi ngoài luồng, dùng Google Search và trả lời NGẮN (dưới 30 từ): {"action": "action_answer", "response": "trả lời", "lang": "${currentLang}"}.
     CHỈ TRẢ VỀ JSON hợp lệ, KHÔNG diễn giải.`;
     try {
         if (!navigator.onLine) throw new Error("OFFLINE_NETWORK");
@@ -1297,8 +1334,9 @@ async function callGeminiToNavigate(text) {
         if (!response.ok) throw new Error(`HTTP_ERROR`);
         const data = await response.json();
         const intent = JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/g, '').trim());
+        
         if (intent.action === "start_game") startGame(intent.game || 'random');
-        else if (intent.action === "exit_action") { toggleFullScreen(true); if (isGaming) stopGame(); }
+        else if (intent.action === "exit_action") { toggleFullScreen(true); if (isGaming) stopGame(); else navigateTo('detection'); }
         else if (intent.action === "fullscreen") toggleFullScreen();
         else if (intent.action === "translate_lang") switchWebsiteLanguage(intent.targetLang);
         else if (intent.action === "toggle_hand") toggleHandTracking(intent.state);
