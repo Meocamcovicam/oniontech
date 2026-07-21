@@ -163,18 +163,19 @@ function processVideoToOffscreen(videoEl) {
 // [FACE TRACKING & PRESENCE LOGIC] Tích hợp cân bằng tự động
 // ----------------------------------------------------
 let isPersonPresent = false;
+let isPlayingMusic = false; 
 let presenceTimeout = null;
 let faceDetection = null;
 
 function updatePresence() {
     if (!isPersonPresent) {
         isPersonPresent = true;
-        if (!isAISpeaking) setAIAvatarState('wave'); 
+        if (!isAISpeaking) setAIAvatarState(isPlayingMusic ? 'playmusic' : 'wave'); 
     }
     clearTimeout(presenceTimeout);
     presenceTimeout = setTimeout(() => {
         isPersonPresent = false;
-        if (!isAISpeaking) setAIAvatarState('idle'); 
+        if (!isAISpeaking) setAIAvatarState(isPlayingMusic ? 'playmusic' : 'idle'); 
     }, 2000); 
 }
 
@@ -249,6 +250,7 @@ function setAIAvatarState(state) {
     if (state === 'sad') targetSrc = "images/Sad.mp4";
     else if (state === 'speaking') targetSrc = Math.random() > 0.5 ? "images/Voice 1.mp4" : "images/Voice 2.mp4";
     else if (state === 'wave') targetSrc = "images/Wave hand.mp4";
+    else if (state === 'playmusic') targetSrc = "images/playmusic.mp4"; 
 
     const cleanTargetSrc = targetSrc.replace(/ /g, "%20");
     let vid1 = document.getElementById('avatar-vid-1');
@@ -332,7 +334,6 @@ window.addEventListener('DOMContentLoaded', () => {
     injectGoogleTranslate(); 
     protectBrandName(); 
     
-    // Tự động ép dịch sang tiếng Việt trên trang ban đầu
     setTimeout(() => { switchWebsiteLanguage('vi', true); }, 1500); 
 });
 
@@ -352,7 +353,7 @@ function speakAI(text, lang = currentLang, isError = false) {
     let cleanText = text.replace(/[*_#\n]/g, " ").replace(/\s+/g, " ").trim();
     if (!cleanText) { playNextAudioQueue(); return; }
 
-    let tl = lang === 'zh' ? 'zh-CN' : lang; // Đảm bảo mã chuẩn Google TTS
+    let tl = lang === 'zh' ? 'zh-CN' : lang; 
     let chunks = cleanText.match(/[^.?!,;]+[.?!,;]+/g) || [cleanText]; 
 
     chunks.forEach(chunk => {
@@ -363,7 +364,9 @@ function speakAI(text, lang = currentLang, isError = false) {
 
 function playNextAudioQueue() {
     if (audioQueue.length === 0) {
-        isAISpeaking = false; setAIAvatarState(isPersonPresent ? 'wave' : 'idle'); 
+        isAISpeaking = false; 
+        setAIAvatarState(isPlayingMusic ? 'playmusic' : (isPersonPresent ? 'wave' : 'idle')); 
+        
         if (isVoiceListening && recognition) { setTimeout(() => { if(isVoiceListening) { try { recognition.start(); } catch(e) {} } }, 500); }
         return;
     }
@@ -383,7 +386,6 @@ function updateAIAssistant(text, speak = true, lang = currentLang, isError = fal
     if (speak) speakAI(text, lang, isError);
 }
 
-// Hàm cốt lõi: Tự động dịch câu trả lời Local sang ngôn ngữ hiện tại
 async function speakLocal(viText, isError = false) {
     let finalText = viText;
     if (currentLang !== 'vi') {
@@ -1041,7 +1043,7 @@ async function toggleHandTracking(forceState = null) {
         if (voiceLogContainer) voiceLogContainer.style.display = "none"; 
         if (cameraPreviewContainer) cameraPreviewContainer.style.display = "none"; 
         virtualCursor.style.display = "none";
-        isPersonPresent = false; if (!isAISpeaking) setAIAvatarState('idle');
+        isPersonPresent = false; if (!isAISpeaking) setAIAvatarState(isPlayingMusic ? 'playmusic' : 'idle');
         
         addLogToUI("⏸ Đã TẮT Camera Detection", "log-sys");
         speakLocal("Đã tắt điều khiển bằng tay.");
@@ -1279,7 +1281,7 @@ hands.onResults(onHandResults);
 
 
 // ----------------------------------------------------
-// 5. GIỌNG NÓI & AI GEMINI (TÍCH HỢP MUSIC & ĐỘ ƯU TIÊN)
+// 5. GIỌNG NÓI & AI GEMINI (TÍCH HỢP MUSIC, ẢNH/VIDEO RESTRICTIONS)
 // ----------------------------------------------------
 const API_KEY_VOICE = atob("QUl6YVN5QkpsZ05zNE93WFRKTkN5YVlBUk5faUpaQ2EzYktjb0NN");
 const API_KEY_FACE = atob("QVEuQWI4Uk42SjBjNGR4bENJV29iTHZ2SWlzbTFYVFdjbWlBeGFHU3VyWnFpZE5Za3JSQ0E=");
@@ -1287,9 +1289,9 @@ const API_KEY_FACE = atob("QVEuQWI4Uk42SjBjNGR4bENJV29iTHZ2SWlzbTFYVFdjbWlBeGFHU
 const voiceBtn = document.getElementById("voice-btn");
 
 const localKeywordMap = [
-    // Lệnh Music (Mức Ưu Tiên Cao)
+    // Lệnh Music (Mức Ưu Tiên Cao) - Bổ sung các từ khóa nhạc Lofi, Cozy hợp lệ
     { keywords: ["phát nhạc random", "mở nhạc random", "phát nhạc ngẫu nhiên", "mở nhạc ngẫu nhiên"], action: "play_music_random" },
-    { keywords: ["phát nhạc", "bật nhạc", "mở nhạc", "nghe nhạc"], action: "play_music" },
+    { keywords: ["phát nhạc", "bật nhạc", "mở nhạc", "nghe nhạc", "bật nhạc lofi", "mở nhạc lofi", "nghe nhạc lofi", "bật nhạc cozy", "mở nhạc cozy", "nghe nhạc cozy"], action: "play_music" },
     { keywords: ["chuyển bài hát", "bật bài tiếp theo", "bài tiếp theo", "đổi bài", "chuyển bài", "next song"], action: "next_music" },
     { keywords: ["tắt nhạc", "tắt bài hát", "ngừng nhạc", "dừng phát nhạc hoàn toàn"], action: "stop_music" },
     { keywords: ["dừng nhạc", "tạm dừng nhạc", "pause nhạc"], action: "pause_music" },
@@ -1329,7 +1331,6 @@ if (SpeechRecognition) {
     recognition.interimResults = false; 
     recognition.continuous = false; 
 
-    // [BẢN VÁ LỖI LẶP VOICE] Gỡ bỏ lệnh bật Micro tức thì tại đây!
     voiceBtn.addEventListener("click", () => {
         if (!isVoiceListening) {
             try {
@@ -1337,8 +1338,6 @@ if (SpeechRecognition) {
                 voiceBtn.classList.add("listening");
                 addLogToUI("▶ Đã BẬT Điều khiển Giọng nói", "log-sys");
                 speakLocal("Đã bật chế độ điều khiển bằng giọng nói."); 
-                // Không gọi recognition.start() ở đây nữa! 
-                // speakAI sẽ tự động kích hoạt Micro ngay khi đọc xong lời chào để tránh nghe chính giọng nó.
             } catch(e) {}
         } else {
             isVoiceListening = false; 
@@ -1364,10 +1363,10 @@ if (SpeechRecognition) {
         
         addLogToUI(`🎤 "${originalTranscript}"`, "log-user"); 
         isCommandProcessing = true; 
-        try { recognition.stop(); } catch(e) {} // Khóa mic trong khi xử lý
+        try { recognition.stop(); } catch(e) {} 
 
         try {
-            // Bước 1: Dịch ngầm câu nói về tiếng Việt (Zero-Token bypass)
+            // Bước 1: Dịch ngầm câu nói về tiếng Việt (Zero-Token bypass) để map với command local
             let viTranscript = originalTranscript;
             if (originalTranscript.length > 2) {
                 viTranscript = await translateZeroToken(originalTranscript, 'vi');
@@ -1387,7 +1386,7 @@ if (SpeechRecognition) {
 
             let exactMatch = null;
 
-            // Bước 2: Regex tự động bắt lệnh dịch ngôn ngữ (100 Langs)
+            // Bước 2: Regex tự động bắt lệnh dịch ngôn ngữ TOÀN BỘ TRANG (100 Langs)
             let langMatch = viTranscript.match(/(?:dịch|chuyển) (?:sang|thành|qua) (?:tiếng|ngôn ngữ) (.*)/);
             if (langMatch) {
                 let langName = langMatch[1].trim();
@@ -1397,7 +1396,7 @@ if (SpeechRecognition) {
                 }
             }
 
-            // Bước 3: So sánh với bộ từ khóa (Dựa theo thứ tự ưu tiên)
+            // Bước 3: So sánh với bộ từ khóa tĩnh (Dựa theo thứ tự ưu tiên)
             if (!exactMatch) {
                 for (const item of localKeywordMap) { 
                     if (item.keywords.some(kw => viTranscript.includes(kw) || originalTranscript.includes(kw))) { 
@@ -1410,9 +1409,10 @@ if (SpeechRecognition) {
             if (exactMatch) {
                 executeLocalAction(exactMatch);
             } else {
-                addLogToUI("🧠 Đang hỏi AI Gemini...", "log-sys");
-                if(aiStatusText) aiStatusText.innerText = "Đang xử lý...";
-                await callGeminiToNavigate(viTranscript); 
+                addLogToUI("🧠 Đang hỏi AI Gemini (Chat/Lệnh phức tạp)...", "log-sys");
+                if(aiStatusText) aiStatusText.innerText = "Đang suy nghĩ...";
+                // [MỚI] TRUYỀN CẢ BẢN GỐC VÀ BẢN DỊCH VÀO GEMINI CHO TÍNH NĂNG CHAT ĐA NGÔN NGỮ
+                await callGeminiToNavigate(viTranscript, originalTranscript); 
             }
         } finally { 
             setTimeout(() => { isCommandProcessing = false; }, 2000); 
@@ -1450,14 +1450,40 @@ function executeLocalAction(matchObj) {
     else if (matchObj.action === "resume_music") resumeMusicLogic();
 }
 
-async function callGeminiToNavigate(text) {
-    const prompt = `Bạn là AI Onion Tech Support. Nhiệm vụ:
-1. Phân tích lệnh: "${text}".
-2. Nếu lệnh điều hướng web (VR, AR, thoát, bật tắt) trả về JSON format action phù hợp (start_game, exit_action, fullscreen, toggle_hand, navigate).
-   ĐẶC BIỆT: Nếu yêu cầu dịch sang ngôn ngữ bất kỳ, trả về {"action": "translate_lang", "targetLang": "MÃ ISO 639-1 của ngôn ngữ đó"}.
-   Nếu lệnh điều khiển nhạc: trả về action phù hợp: play_music, play_music_random, next_music, stop_music, pause_music, resume_music.
-3. Nếu người dùng hỏi các vấn đề ngoài website (Ví dụ: Thời tiết hôm nay, tin tức, kiến thức...), dùng công cụ Google Search để lấy dữ liệu. Sau đó trả lời NGẮN GỌN (dưới 30 từ). Trả về JSON: {"action": "action_answer", "response": "câu trả lời", "lang": "${currentLang}"}.
-Chỉ trả về chuỗi JSON hợp lệ.`;
+// [CẬP NHẬT] HÀM GỌI GEMINI XỬ LÝ CHATBOT VÀ LỆNH (VỚI CÁC RÀNG BUỘC MỚI)
+async function callGeminiToNavigate(viText, originalText = viText) {
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours();
+    let timeOfDay = "buổi sáng";
+    if (currentHour >= 12 && currentHour < 18) timeOfDay = "buổi chiều";
+    else if (currentHour >= 18) timeOfDay = "buổi tối";
+    const timeString = currentTime.toLocaleTimeString('vi-VN');
+
+    const prompt = `Bạn là AI của công ty Onion (Onion Tech), một trợ lý ảo thông minh, thân thiện, lịch sự và có cảm xúc như con người. Bạn luôn xưng hô là "Tôi".
+Thời gian hiện tại ở Hà Nội: ${timeString} (${timeOfDay}).
+Người dùng vừa nói câu này (ngôn ngữ gốc): "${originalText}"
+Bản dịch (để bạn dễ hiểu ý): "${viText}"
+
+Nhiệm vụ:
+1. Phát hiện ngôn ngữ của câu gốc ("${originalText}"). MỌI CÂU TRẢ LỜI Ở MỤC "response" PHẢI ĐƯỢC VIẾT BẰNG NGÔN NGỮ NÀY (Hỏi tiếng Anh -> trả lời tiếng Anh, hỏi tiếng Nhật -> trả lời tiếng Nhật...).
+2. Phân tích ý định:
+   - TỪ CHỐI TẠO ẢNH/VIDEO: Nếu người dùng yêu cầu tạo ảnh (generate image) hoặc tạo video (generate video), hãy từ chối lịch sự và cho biết bạn chỉ là trợ lý ảo hỗ trợ website (action: "chat").
+   - TỪ CHỐI NHẠC CỤ THỂ/KHÔNG HỢP LỆ: Nếu người dùng yêu cầu phát một bài hát cụ thể (ví dụ: "mở bài Em của ngày hôm qua", "play Shape of You") hoặc các thể loại nhạc không có sẵn (ví dụ: "nhạc rock", "nhạc edm", "nhạc remix"), hãy từ chối lịch sự và giải thích rằng hệ thống hiện chỉ hỗ trợ các loại nhạc chung chung có sẵn như "nhạc lofi" hoặc "nhạc cozy" (action: "chat").
+   - PHÁT NHẠC HỢP LỆ: Nếu yêu cầu phát nhạc hợp lệ hoặc các thể loại nhạc như "lofi", "cozy", hãy trả về action "play_music" (hoặc "play_music_random").
+   - ĐIỀU KHIỂN HỆ THỐNG: Nếu là yêu cầu điều khiển website (mở trang chủ, chơi game, bật tắt tay, dịch website): Trả về JSON chứa action tương ứng (navigate, start_game, translate_lang, toggle_hand...).
+   - TRÒ CHUYỆN BÌNH THƯỜNG: Nếu là hỏi thăm/chat bot thông thường, trả về action là "chat" kèm theo các nguyên tắc:
+     + Chào hỏi: Chào phù hợp theo thời gian (${timeOfDay}).
+     + Hỏi sức khỏe/bạn là ai: Trả lời tích cực, vui vẻ, xưng "Tôi" là AI của công ty Onion.
+     + Nếu người dùng ĐANG BUỒN hoặc CẦN ĐƯỢC AN ỦI: Viết câu an ủi họ, gợi ý 1 vài địa điểm đi chơi ở Hà Nội và đặt biến "trigger_music" = true để hệ thống tự động phát nhạc.
+     + Kiến thức chung: Cung cấp thông tin ngắn gọn (Dưới 30 từ).
+
+TRẢ VỀ DUY NHẤT CHUỖI JSON HỢP LỆ THEO ĐỊNH DẠNG SAU, KHÔNG GIẢI THÍCH:
+{
+  "action": "chat" (hoặc start_game, exit_action, fullscreen, toggle_hand, navigate, translate_lang, play_music, etc...),
+  "response": "Câu trả lời của bạn BẰNG ĐÚNG NGÔN NGỮ NGƯỜI DÙNG VỪA NÓI (Không thay đổi ngôn ngữ web).",
+  "lang": "Mã ISO 639-1 của ngôn ngữ câu trả lời (vd: vi, en, ja, zh-CN...)",
+  "trigger_music": true/false (chỉ trả true nếu người dùng buồn và cần an ủi)
+}`;
 
     try {
         if (!navigator.onLine) throw new Error("OFFLINE_NETWORK");
@@ -1478,6 +1504,7 @@ Chỉ trả về chuỗi JSON hợp lệ.`;
         let resultText = data.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/g, '').trim();
         const intent = JSON.parse(resultText);
         
+        // --- Xử lý Lệnh Điều Khiển ---
         if (intent.action === "start_game") startGame(intent.game || 'random');
         else if (intent.action === "exit_action") { 
             toggleFullScreen(true, true); 
@@ -1489,7 +1516,6 @@ Chỉ trả về chuỗi JSON hợp lệ.`;
         else if (intent.action === "toggle_hand") toggleHandTracking(intent.state !== undefined ? intent.state : null);
         else if (intent.action === "navigate") navigateTo(intent.page);
         
-        // Điều khiển nhạc qua Gemini
         else if (intent.action === "play_music") playMusicLogic(false);
         else if (intent.action === "play_music_random") playMusicLogic(true);
         else if (intent.action === "next_music") nextMusicTrack();
@@ -1497,13 +1523,23 @@ Chỉ trả về chuỗi JSON hợp lệ.`;
         else if (intent.action === "pause_music") pauseMusicLogic();
         else if (intent.action === "resume_music") resumeMusicLogic();
         
-        else if (intent.action === "action_answer") updateAIAssistant(intent.response, true, intent.lang || currentLang);
+        // --- Xử lý Đàm Thoại Chatbot Đa Ngôn Ngữ ---
+        else if (intent.action === "chat" || intent.action === "action_answer") {
+            // Sử dụng trực tiếp updateAIAssistant để AI đọc đúng ngôn ngữ (lang) được detect
+            // bỏ qua hàm speakLocal để không bị ảnh hưởng bởi auto-translation của website
+            updateAIAssistant(intent.response, true, intent.lang || currentLang);
+            
+            // Xử lý bật nhạc an ủi
+            if (intent.trigger_music) {
+                setTimeout(() => { playMusicLogic(false); }, 1500);
+            }
+        }
         
     } catch (error) { 
         console.error("Gemini Error: ", error);
         let fallbackMatch = null;
         for (const item of localKeywordMap) {
-            if (item.keywords.some(kw => text.includes(kw))) { fallbackMatch = item; break; }
+            if (item.keywords.some(kw => viText.includes(kw))) { fallbackMatch = item; break; }
         }
         if (fallbackMatch) { executeLocalAction(fallbackMatch); } 
         else {
@@ -1546,8 +1582,13 @@ function playMusicLogic(random = false) {
     audioPlayer.src = musicPlaylist[currentMusicIndex];
     audioPlayer.play().catch(e => console.log("Lỗi phát nhạc:", e));
     isMusicInitialized = true;
-    speakLocal(random ? "Đã phát nhạc ngẫu nhiên." : "Đã bật nhạc.");
-    addLogToUI(`🎵 Đang phát: ${musicPlaylist[currentMusicIndex]}`, "log-sys");
+    isPlayingMusic = true;
+    
+    // Đổi Avatar sang Play Music ngay lập tức nếu AI không đang nói
+    if (!isAISpeaking) setAIAvatarState('playmusic');
+    
+    // Chỉ báo qua UI để không đè lên câu nói an ủi của Chatbot (nếu gọi từ Chat)
+    addLogToUI(`🎵 Đang phát nhạc: ${musicPlaylist[currentMusicIndex]}`, "log-sys");
 }
 
 function nextMusicTrack(isAutoNext = false) {
@@ -1566,7 +1607,10 @@ function nextMusicTrack(isAutoNext = false) {
     }
     audioPlayer.src = musicPlaylist[currentMusicIndex];
     audioPlayer.play().catch(e => console.log(e));
-    if(!isAutoNext) speakLocal("Đã chuyển bài hát tiếp theo.");
+    isPlayingMusic = true;
+    
+    if (!isAISpeaking) setAIAvatarState('playmusic');
+    if (!isAutoNext) speakLocal("Đã chuyển bài hát tiếp theo.");
     addLogToUI(`🎵 Đang phát: ${musicPlaylist[currentMusicIndex]}`, "log-sys");
 }
 
@@ -1575,6 +1619,9 @@ function stopMusicLogic() {
     audioPlayer.pause();
     audioPlayer.currentTime = 0;
     isMusicInitialized = false;
+    isPlayingMusic = false;
+    
+    if (!isAISpeaking) setAIAvatarState(isPersonPresent ? 'wave' : 'idle');
     speakLocal("Đã tắt nhạc hoàn toàn.");
     addLogToUI(`🎵 Đã tắt nhạc.`, "log-sys");
 }
@@ -1582,6 +1629,9 @@ function stopMusicLogic() {
 function pauseMusicLogic() {
     if (!isMusicInitialized) return;
     audioPlayer.pause();
+    isPlayingMusic = false;
+    
+    if (!isAISpeaking) setAIAvatarState(isPersonPresent ? 'wave' : 'idle');
     speakLocal("Đã tạm dừng nhạc.");
     addLogToUI(`🎵 Đã tạm dừng nhạc.`, "log-sys");
 }
@@ -1592,6 +1642,9 @@ function resumeMusicLogic() {
         return;
     }
     audioPlayer.play().catch(e => console.log(e));
+    isPlayingMusic = true;
+    
+    if (!isAISpeaking) setAIAvatarState('playmusic');
     speakLocal("Đã tiếp tục phát nhạc.");
     addLogToUI(`🎵 Tiếp tục phát.`, "log-sys");
 }
