@@ -1387,7 +1387,8 @@ if (SpeechRecognition) {
             let exactMatch = null;
 
             // Bước 2: Regex tự động bắt lệnh dịch ngôn ngữ TOÀN BỘ TRANG (100 Langs)
-            let langMatch = viTranscript.match(/(?:dịch|chuyển) (?:sang|thành|qua) (?:tiếng|ngôn ngữ) (.*)/);
+            // [CẬP NHẬT] Chỉ bắt lệnh nguyên văn không chứa từ thừa. Vd: "dịch sang tiếng trung", "chuyển sang tiếng anh"
+            let langMatch = viTranscript.match(/^(?:phiên )?(?:dịch|chuyển|đổi) (?:sang|thành|qua) (?:tiếng|ngôn ngữ) (.+)$/);
             if (langMatch) {
                 let langName = langMatch[1].trim();
                 let targetLang = langMap[langName];
