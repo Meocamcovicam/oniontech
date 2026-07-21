@@ -574,7 +574,7 @@ function resetCurrentGame() {
     document.getElementById('game-over-overlay').style.display = 'none';
     
     if (activeGameType === 'stylist') {
-        resetStylist(); 
+        initStylist(); // Đã thay thế resetStylist() thành initStylist() để khởi động lại chu kỳ đếm
         addLogToUI("🔄 Đã khởi động lại AI Stylist", "log-success");
         speakLocal("Đã khởi động lại nhận diện khuôn mặt.");
     } else if (activeGameType === 'shooter') {
@@ -768,7 +768,7 @@ let stylistUsageCount = 0;
 function initStylist() {
     resetStylist();
     stylistUsageCount = 0; 
-    stylistLog(`Hệ thống AI Stylist - Sẵn sàng (Chu kỳ 20s) [0/4]`, "sys");
+    stylistLog(`Hệ thống AI Stylist - Sẵn sàng (Chu kỳ 20s) [0/3]`, "sys"); // ĐÃ CHỈNH SỬA
     
     const camCanvas = document.getElementById('stylist-cam-canvas');
     const camCtx = camCanvas.getContext('2d');
@@ -833,6 +833,8 @@ function stylistLog(msg, type) {
 
 async function processStylistFrame() {
     if (isStylistProcessing || activeGameType !== 'stylist' || !isGaming) return;
+    if (stylistUsageCount >= 3) return; // ĐÃ THÊM: Ngăn chặn quét nếu đã đạt giới hạn
+    
     const videoEl = document.getElementsByClassName('input_video')[0];
     const currentSrc = (offscreenCanvas && offscreenCanvas.width > 0) ? offscreenCanvas : videoEl;
     if (!currentSrc || !currentSrc.width && !currentSrc.videoWidth) return;
@@ -858,14 +860,14 @@ async function processStylistFrame() {
 
     if (!isDiff) {
         stylistLog("Khách không đổi vị trí/dáng. Bỏ qua để tiết kiệm API.", "warn");
-        document.getElementById('stylist-cam-status').innerText = `Đã quét (Giữ Data) [${stylistUsageCount}/4]`;
+        document.getElementById('stylist-cam-status').innerText = `Đã quét (Giữ Data) [${stylistUsageCount}/3]`; // ĐÃ CHỈNH SỬA
         isStylistProcessing = false;
         return;
     }
 
     lastStylistPixels = currentPixels;
     stylistLog("Chuyển động mới / Khách mới. Đang gọi API...", "sys");
-    document.getElementById('stylist-cam-status').innerText = `Đang phân tích... [${stylistUsageCount}/4]`;
+    document.getElementById('stylist-cam-status').innerText = `Đang phân tích... [${stylistUsageCount}/3]`; // ĐÃ CHỈNH SỬA
 
     const captureCanvas = document.createElement('canvas');
     captureCanvas.width = 320; captureCanvas.height = 240;
@@ -913,20 +915,18 @@ Nếu không có người, trả về các mảng rỗng.`;
 
         const totalItems = Object.values(parsed).reduce((a, b) => a + (b ? b.length : 0), 0);
         if (totalItems === 0) {
-            stylistLog(`Không nhận diện được người rõ ràng. (Lần ${stylistUsageCount}/4)`, "err");
-            document.getElementById('stylist-cam-status').innerText = `Không thấy người [${stylistUsageCount}/4]`;
+            stylistLog(`Không nhận diện được người rõ ràng. (Lần ${stylistUsageCount}/3)`, "err"); // ĐÃ CHỈNH SỬA
+            document.getElementById('stylist-cam-status').innerText = `Không thấy người [${stylistUsageCount}/3]`; // ĐÃ CHỈNH SỬA
         } else {
-            stylistLog(`Phân tích thành công: Đã cập nhật gợi ý. (Lần ${stylistUsageCount}/4)`, "success");
-            document.getElementById('stylist-cam-status').innerText = `Đã cập nhật (Mới) [${stylistUsageCount}/4]`;
+            stylistLog(`Phân tích thành công: Đã cập nhật gợi ý. (Lần ${stylistUsageCount}/3)`, "success"); // ĐÃ CHỈNH SỬA
+            document.getElementById('stylist-cam-status').innerText = `Đã cập nhật (Mới) [${stylistUsageCount}/3]`; // ĐÃ CHỈNH SỬA
             updateStylistDOM(parsed);
         }
 
-        if (stylistUsageCount >= 4) {
-            stylistLog("✅ Đã đạt giới hạn 4 lần sử dụng. Đóng ứng dụng sau 5 giây...", "warn");
-            document.getElementById('stylist-cam-status').innerText = `Hoàn tất [4/4] (Đang đóng...)`;
-            setTimeout(() => {
-                if (activeGameType === 'stylist' && isGaming) stopGame();
-            }, 5000);
+        if (stylistUsageCount >= 3) { // ĐÃ CHỈNH SỬA & GIỮ NGUYÊN KẾT QUẢ KHÔNG ĐÓNG APP
+            stylistLog("✅ Đã đạt giới hạn 3 lần sử dụng. Giữ nguyên kết quả cuối cùng trên màn hình.", "warn");
+            document.getElementById('stylist-cam-status').innerText = `Hoàn tất [3/3]`;
+            if (stylistIntervalId) clearInterval(stylistIntervalId);
         }
 
     } catch (e) {
@@ -1403,7 +1403,6 @@ if (SpeechRecognition) {
             if (exactMatch) {
                 executeLocalAction(exactMatch);
             } else {
-                addLogToUI("🧠 Đang hỏi AI Gemini (Chat/Lệnh phức tạp)...", "log-sys");
                 if(aiStatusText) aiStatusText.innerText = "Đang suy nghĩ...";
                 await callGeminiToNavigate(viTranscript, originalTranscript); 
             }
@@ -1488,22 +1487,25 @@ async function callGeminiToNavigate(viText, originalText = viText) {
     else if (currentHour >= 18) timeOfDay = "buổi tối";
     const timeString = currentTime.toLocaleTimeString('vi-VN');
 
-    // 2. Dynamic Tooling: Chỉ gắn Search khi gặp từ khóa cần thiết
-    const needsSearch = /(thời tiết|tin tức|giá|hôm nay|ai là|cái gì|ở đâu)/i.test(viText);
+    // 2. Dynamic Tooling: Chỉ gắn Search khi gặp từ khóa thời gian thực (Giảm thiểu token)
+    const needsSearch = /(thời tiết|tin tức|giá |hôm nay|hiện tại|mới nhất|bây giờ|tỷ giá|lịch thi đấu)/i.test(viText);
     let payload = {
         contents: [{ parts: [{ text: "" }] }]
     };
     
     if (needsSearch) {
         payload.tools = [{ googleSearch: {} }];
-        addLogToUI("🔍 Bật Google Search để tra cứu...", "log-sys");
+        addLogToUI("🔍 Bật Google Search (Real-time data)...", "log-sys");
+    } else {
+        addLogToUI("🧠 Dùng tri thức nội tại của AI...", "log-sys");
     }
 
-    // 3. Prompt Rút Gọn (Giảm thiểu token gửi đi)
+    // 3. Prompt Rút Gọn (Đã nhắc AI trả lời kiến thức bằng tri thức nội tại)
     const prompt = `Bạn là trợ lý AI của Onion Tech. Xưng "Tôi". Hiện tại: Hà Nội, ${timeString} (${timeOfDay}).
 Gốc: "${originalText}" | Dịch: "${viText}"
 Nhiệm vụ: Trả về JSON, KHÔNG giải thích.
 - Phản hồi đúng ngôn ngữ của câu gốc.
+- Nếu người dùng hỏi kiến thức (định lý, lịch sử, toán học, khoa học...), hãy trả lời trực tiếp ngắn gọn, súc tích.
 - Nếu yêu cầu tạo ảnh/video/nhạc cụ thể/nhạc ko hợp lệ (rock, edm) -> action: "chat", từ chối lịch sự.
 - Nhạc hợp lệ (lofi, cozy, random) -> action: "play_music" (hoặc play_music_random).
 - Điều khiển (mở trang chủ, game, bật/tắt tay, dịch web) -> action: navigate, start_game, translate_lang, toggle_hand.
@@ -1553,7 +1555,6 @@ Format: {"action": "chat", "response": "Câu trả lời", "lang": "Mã ISO", "t
 // ----------------------------------------------------
 // 6. HỆ THỐNG PHÁT NHẠC (HIDDEN MUSIC PLAYER)
 // ----------------------------------------------------
-// BẠN HÃY CHÈN ĐÚNG TÊN FILE NHẠC CỦA BẠN VÀO MẢNG BÊN DƯỚI NHÉ!
 let musicPlaylist = [
     "music/song1.mp3",
     "music/song2.mp3",
