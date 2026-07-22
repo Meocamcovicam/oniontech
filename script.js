@@ -1407,10 +1407,10 @@ if (SpeechRecognition) {
                 await callGeminiToNavigate(viTranscript, originalTranscript); 
             }
         } finally { 
-            setTimeout(() => { isCommandProcessing = false; }, 2000); 
+            setTimeout(() => { isCommandProcessing = false; }, 200); 
         }
     };
-    recognition.onend = () => { if (isVoiceListening && !isAISpeaking) { setTimeout(() => { if (isVoiceListening && !isAISpeaking) { try { recognition.start(); } catch (e) {} } }, 500); } };
+    recognition.onend = () => { if (isVoiceListening && !isAISpeaking) { setTimeout(() => { if (isVoiceListening && !isAISpeaking) { try { recognition.start(); } catch (e) {} } }, 200); } };
 }
 
 function executeLocalAction(matchObj) {
