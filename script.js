@@ -974,7 +974,7 @@ const virtualCursor = document.getElementById("virtual-cursor");
 let isHandTracking = false; let camera = null; 
 
 let lastGlobalActionTime = 0; 
-const GLOBAL_COOLDOWN = 3000; 
+const GLOBAL_COOLDOWN = 2000; 
 
 let handPath = [];
 let wasHandClosed = false; let isClicking = false; let clickStartX = 0; let clickStartY = 0;
