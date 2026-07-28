@@ -574,7 +574,7 @@ function resetCurrentGame() {
     document.getElementById('game-over-overlay').style.display = 'none';
     
     if (activeGameType === 'stylist') {
-        initStylist(); // Đã thay thế resetStylist() thành initStylist() để khởi động lại chu kỳ đếm
+        initStylist(); 
         addLogToUI("🔄 Đã khởi động lại AI Stylist", "log-success");
         speakLocal("Đã khởi động lại nhận diện khuôn mặt.");
     } else if (activeGameType === 'shooter') {
@@ -768,7 +768,7 @@ let stylistUsageCount = 0;
 function initStylist() {
     resetStylist();
     stylistUsageCount = 0; 
-    stylistLog(`Hệ thống AI Stylist - Sẵn sàng (Chu kỳ 20s) [0/3]`, "sys"); // ĐÃ CHỈNH SỬA
+    stylistLog(`Hệ thống AI Stylist - Sẵn sàng (Chu kỳ 20s) [0/3]`, "sys"); 
     
     const camCanvas = document.getElementById('stylist-cam-canvas');
     const camCtx = camCanvas.getContext('2d');
@@ -833,7 +833,7 @@ function stylistLog(msg, type) {
 
 async function processStylistFrame() {
     if (isStylistProcessing || activeGameType !== 'stylist' || !isGaming) return;
-    if (stylistUsageCount >= 3) return; // ĐÃ THÊM: Ngăn chặn quét nếu đã đạt giới hạn
+    if (stylistUsageCount >= 3) return; 
     
     const videoEl = document.getElementsByClassName('input_video')[0];
     const currentSrc = (offscreenCanvas && offscreenCanvas.width > 0) ? offscreenCanvas : videoEl;
@@ -860,14 +860,14 @@ async function processStylistFrame() {
 
     if (!isDiff) {
         stylistLog("Khách không đổi vị trí/dáng. Bỏ qua để tiết kiệm API.", "warn");
-        document.getElementById('stylist-cam-status').innerText = `Đã quét (Giữ Data) [${stylistUsageCount}/3]`; // ĐÃ CHỈNH SỬA
+        document.getElementById('stylist-cam-status').innerText = `Đã quét (Giữ Data) [${stylistUsageCount}/3]`; 
         isStylistProcessing = false;
         return;
     }
 
     lastStylistPixels = currentPixels;
     stylistLog("Chuyển động mới / Khách mới. Đang gọi API...", "sys");
-    document.getElementById('stylist-cam-status').innerText = `Đang phân tích... [${stylistUsageCount}/3]`; // ĐÃ CHỈNH SỬA
+    document.getElementById('stylist-cam-status').innerText = `Đang phân tích... [${stylistUsageCount}/3]`; 
 
     const captureCanvas = document.createElement('canvas');
     captureCanvas.width = 320; captureCanvas.height = 240;
@@ -915,15 +915,15 @@ Nếu không có người, trả về các mảng rỗng.`;
 
         const totalItems = Object.values(parsed).reduce((a, b) => a + (b ? b.length : 0), 0);
         if (totalItems === 0) {
-            stylistLog(`Không nhận diện được người rõ ràng. (Lần ${stylistUsageCount}/3)`, "err"); // ĐÃ CHỈNH SỬA
-            document.getElementById('stylist-cam-status').innerText = `Không thấy người [${stylistUsageCount}/3]`; // ĐÃ CHỈNH SỬA
+            stylistLog(`Không nhận diện được người rõ ràng. (Lần ${stylistUsageCount}/3)`, "err"); 
+            document.getElementById('stylist-cam-status').innerText = `Không thấy người [${stylistUsageCount}/3]`; 
         } else {
-            stylistLog(`Phân tích thành công: Đã cập nhật gợi ý. (Lần ${stylistUsageCount}/3)`, "success"); // ĐÃ CHỈNH SỬA
-            document.getElementById('stylist-cam-status').innerText = `Đã cập nhật (Mới) [${stylistUsageCount}/3]`; // ĐÃ CHỈNH SỬA
+            stylistLog(`Phân tích thành công: Đã cập nhật gợi ý. (Lần ${stylistUsageCount}/3)`, "success"); 
+            document.getElementById('stylist-cam-status').innerText = `Đã cập nhật (Mới) [${stylistUsageCount}/3]`; 
             updateStylistDOM(parsed);
         }
 
-        if (stylistUsageCount >= 3) { // ĐÃ CHỈNH SỬA & GIỮ NGUYÊN KẾT QUẢ KHÔNG ĐÓNG APP
+        if (stylistUsageCount >= 3) { 
             stylistLog("✅ Đã đạt giới hạn 3 lần sử dụng. Giữ nguyên kết quả cuối cùng trên màn hình.", "warn");
             document.getElementById('stylist-cam-status').innerText = `Hoàn tất [3/3]`;
             if (stylistIntervalId) clearInterval(stylistIntervalId);
@@ -1281,14 +1281,13 @@ hands.onResults(onHandResults);
 
 
 // ----------------------------------------------------
-// 5. GIỌNG NÓI & AI GEMINI (TÍCH HỢP MUSIC, ẢNH/VIDEO RESTRICTIONS)
+// 5. GIỌNG NÓI & AI GEMINI (TÍCH HỢP WAKE WORD "HEY")
 // ----------------------------------------------------
 const API_KEY_VOICE = atob("QUl6YVN5QkpsZ05zNE93WFRKTkN5YVlBUk5faUpaQ2EzYktjb0NN");
 const API_KEY_FACE = atob("QVEuQWI4Uk42SjBjNGR4bENJV29iTHZ2SWlzbTFYVFdjbWlBeGFHU3VyWnFpZE5Za3JSQ0E=");
 
 const voiceBtn = document.getElementById("voice-btn");
 
-// [TỐI ƯU HÓA] Thêm bộ nhớ đệm Cache để tiết kiệm token
 const aiResponseCache = new Map();
 
 const localKeywordMap = [
@@ -1335,8 +1334,8 @@ if (SpeechRecognition) {
             try {
                 isVoiceListening = true; 
                 voiceBtn.classList.add("listening");
-                addLogToUI("▶ Đã BẬT Điều khiển Giọng nói", "log-sys");
-                speakLocal("Đã bật chế độ điều khiển bằng giọng nói."); 
+                addLogToUI("▶ Đã BẬT Điều khiển Giọng nói (Cần gọi 'Hey' trước câu lệnh)", "log-sys");
+                speakLocal("Đã bật nhận diện giọng nói. Bạn hãy gọi Hey trước mỗi câu lệnh nhé."); 
             } catch(e) {}
         } else {
             isVoiceListening = false; 
@@ -1358,9 +1357,35 @@ if (SpeechRecognition) {
         if (isCommandProcessing || isAISpeaking) return; 
         const result = event.results[event.resultIndex][0]; 
         let originalTranscript = result.transcript.toLowerCase().trim().replace(/[.,!?]/g, "");
-        if (result.confidence < 0.6 || originalTranscript.length <= 2 || !originalTranscript.match(/[a-z0-9]/i) || /^([a-zơôoăâeêiuưy])\1+$/i.test(originalTranscript.replace(/\s/g, ''))) return;
         
-        addLogToUI(`🎤 "${originalTranscript}"`, "log-user"); 
+        if (result.confidence < 0.3 || originalTranscript.length <= 1 || !originalTranscript.match(/[a-z0-9]/i) || /^([a-zơôoăâeêiuưy])\1+$/i.test(originalTranscript.replace(/\s/g, ''))) return;
+        
+        // [CẬP NHẬT] CHỈ XỬ LÝ KHI BẮT ĐẦU BẰNG TỪ KHÓA "HEY"
+        // Hỗ trợ một số từ mà STT thường xuyên nghe nhầm (hey, hay, hây, he, hê)
+        const wakeWordRegex = /^(?:hey|hay|hây|he|hê)(?:\s+|$)/i;
+        let hasWakeWord = wakeWordRegex.test(originalTranscript);
+
+        if (!hasWakeWord) {
+            // NẾU KHÔNG CÓ HEY -> KHÔNG TÍNH LÀ 1 TÁC VỤ, BỎ QUA HOÀN TOÀN
+            try { recognition.stop(); } catch(e) {}
+            return; 
+        }
+
+        // Tách câu lệnh ra khỏi chữ Hey
+        originalTranscript = originalTranscript.replace(wakeWordRegex, "").trim();
+
+        if (originalTranscript !== "") {
+            addLogToUI(`🎤 Nghe được: "Hey ${originalTranscript}"`, "log-user"); 
+        }
+
+        // Nếu nói xong "Hey" mà dừng lại không có lệnh
+        if (originalTranscript === "") {
+            addLogToUI(`🤖 AI đang chờ lệnh...`, "log-sys");
+            speakLocal("Tôi đang nghe đây.");
+            try { recognition.stop(); } catch(e) {}
+            return;
+        }
+
         isCommandProcessing = true; 
         try { recognition.stop(); } catch(e) {} 
 
@@ -1370,7 +1395,7 @@ if (SpeechRecognition) {
                 viTranscript = await translateZeroToken(originalTranscript, 'vi');
                 viTranscript = viTranscript.toLowerCase().trim().replace(/[.,!?]/g, "");
                 if (viTranscript !== originalTranscript) {
-                    addLogToUI(`🔤 Ý nghĩa (VN): "${viTranscript}"`, "log-sys");
+                    addLogToUI(`🔤 Ý lệnh: "${viTranscript}"`, "log-sys");
                 }
             }
 
@@ -1441,7 +1466,6 @@ function executeLocalAction(matchObj) {
     else if (matchObj.action === "resume_music") resumeMusicLogic();
 }
 
-// Hàm bổ trợ thực thi Intent từ Gemini
 function executeGeminiIntent(intent) {
     if (intent.action === "start_game") startGame(intent.game || 'random');
     else if (intent.action === "exit_action") { 
@@ -1469,9 +1493,7 @@ function executeGeminiIntent(intent) {
     }
 }
 
-// [CẬP NHẬT TỐI ƯU TOKEN] HÀM GỌI GEMINI XỬ LÝ CHATBOT VÀ LỆNH
 async function callGeminiToNavigate(viText, originalText = viText) {
-    // 1. Kiểm tra Cache cục bộ
     const cacheKey = originalText.toLowerCase().trim();
     if (aiResponseCache.has(cacheKey)) {
         addLogToUI("⚡ Lấy kết quả từ Cache (Tiết kiệm token)", "log-success");
@@ -1487,7 +1509,6 @@ async function callGeminiToNavigate(viText, originalText = viText) {
     else if (currentHour >= 18) timeOfDay = "buổi tối";
     const timeString = currentTime.toLocaleTimeString('vi-VN');
 
-    // 2. Dynamic Tooling: Chỉ gắn Search khi gặp từ khóa thời gian thực (Giảm thiểu token)
     const needsSearch = /(thời tiết|tin tức|giá |hôm nay|hiện tại|mới nhất|bây giờ|tỷ giá|lịch thi đấu)/i.test(viText);
     let payload = {
         contents: [{ parts: [{ text: "" }] }]
@@ -1500,16 +1521,20 @@ async function callGeminiToNavigate(viText, originalText = viText) {
         addLogToUI("🧠 Dùng tri thức nội tại của AI...", "log-sys");
     }
 
-    // 3. Prompt Rút Gọn (Đã nhắc AI trả lời kiến thức bằng tri thức nội tại)
     const prompt = `Bạn là trợ lý AI của Onion Tech. Xưng "Tôi". Hiện tại: Hà Nội, ${timeString} (${timeOfDay}).
 Gốc: "${originalText}" | Dịch: "${viText}"
 Nhiệm vụ: Trả về JSON, KHÔNG giải thích.
 - Phản hồi đúng ngôn ngữ của câu gốc.
-- Nếu người dùng hỏi kiến thức (định lý, lịch sử, toán học, khoa học...), hãy trả lời trực tiếp ngắn gọn, súc tích.
-- Nếu yêu cầu tạo ảnh/video/nhạc cụ thể/nhạc ko hợp lệ (rock, edm) -> action: "chat", từ chối lịch sự.
-- Nhạc hợp lệ (lofi, cozy, random) -> action: "play_music" (hoặc play_music_random).
-- Điều khiển (mở trang chủ, game, bật/tắt tay, dịch web) -> action: navigate, start_game, translate_lang, toggle_hand.
-- Trò chuyện -> action: "chat". (Hỏi thăm ngắn gọn <30 từ. Nếu user buồn -> an ủi & trigger_music: true).
+- Nếu hỏi kiến thức, thời tiết, tin tức... -> action: "chat", "response": "trả lời trực tiếp ngắn gọn".
+- Nếu yêu cầu tạo ảnh/video/nhạc ko hợp lệ -> action: "chat", từ chối lịch sự.
+- Mở nhạc / nghe nhạc -> action: "play_music".
+- Mở game / chơi game -> action: "start_game".
+- Tắt nhạc -> action: "stop_music".
+- Bật/tắt tay -> action: "toggle_hand".
+- Phóng to/toàn màn hình -> action: "fullscreen".
+- Chuyển trang (nhà, sản phẩm, liên hệ...) -> action: "navigate", "page": "tên trang tiếng Anh (home, product, contact...)".
+- Dịch web -> action: "translate_lang", "targetLang": "mã ISO (vi, en, zh-CN, ja, ko...)".
+- Trò chuyện -> action: "chat".
 Format: {"action": "chat", "response": "Câu trả lời", "lang": "Mã ISO", "trigger_music": true/false}`;
 
     payload.contents[0].parts[0].text = prompt;
@@ -1528,14 +1553,12 @@ Format: {"action": "chat", "response": "Câu trả lời", "lang": "Mã ISO", "t
         let resultText = data.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/g, '').trim();
         const intent = JSON.parse(resultText);
 
-        // 4. Lưu kết quả vào Cache (Giới hạn 50 câu để chống tràn RAM)
         if (aiResponseCache.size > 50) {
             const firstKey = aiResponseCache.keys().next().value;
             aiResponseCache.delete(firstKey);
         }
         aiResponseCache.set(cacheKey, intent);
         
-        // Thực thi hành động
         executeGeminiIntent(intent);
         
     } catch (error) { 
@@ -1586,10 +1609,8 @@ function playMusicLogic(random = false) {
     isMusicInitialized = true;
     isPlayingMusic = true;
     
-    // Đổi Avatar sang Play Music ngay lập tức nếu AI không đang nói
     if (!isAISpeaking) setAIAvatarState('playmusic');
     
-    // Chỉ báo qua UI để không đè lên câu nói an ủi của Chatbot (nếu gọi từ Chat)
     addLogToUI(`🎵 Đang phát nhạc: ${musicPlaylist[currentMusicIndex]}`, "log-sys");
 }
 
